@@ -1,0 +1,9 @@
+1- Your solution does not ignore (without error) repeated keygen requests. (-0.4p)
+
+2- In your solution private RSAPublicKey pub; is a class-member variable, i.e., persistent object stored on EEPROM (see the slide 19).
+Each time the process() method with INS=04/06 is invoked, pub = (RSAPublicKey) keypair.getPublic(); will update pub wearing EEPROM.
+Either pub should be defined as a local variable, or pub = (RSAPublicKey) keypair.getPublic(); should be done only once when the key is generated. (-0.4p)
+
+3- (2nd problem) The same for the rsa variable (i.e., rsa = Cipher.getInstance(Cipher.ALG_RSA_PKCS1, false);). (-0.4p)
+
+4- (2nd problem) The same for the keypair variable. (-0.4p)
