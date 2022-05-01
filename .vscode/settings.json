@@ -28,6 +28,7 @@
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
         "api_classic-3.0.4.jar",
-        "jckit/lib/api_classic-3.1.0.jar"
+        "sdks/jc304_kit/lib/api_connected.jar",
+        "sdks/jc304_kit/lib/api_classic.jar"
     ]
 }
