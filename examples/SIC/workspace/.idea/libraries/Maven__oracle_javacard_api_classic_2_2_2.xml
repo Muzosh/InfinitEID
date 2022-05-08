@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: oracle.javacard:api_classic:2.2.2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../java_card_kit-2_2_2/lib/api.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/oracle/javacard/api_classic/2.2.2/api_classic-2.2.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/oracle/javacard/api_classic/2.2.2/api_classic-2.2.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

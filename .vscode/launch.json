@@ -1,27 +1,27 @@
 {
-    "configurations": [
-        {
-            "type": "java",
-            "name": "Launch App",
-            "request": "launch",
-            "mainClass": "App",
-            "projectName": "web-eid-javacard-applet_ebb2c0e3"
-        },
-        {
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "name": "Py: Just My Code",
-            "program": "${file}",
-            "request": "launch",
-            "type": "python"
-        },
-        {
-            "console": "integratedTerminal",
-            "justMyCode": false,
-            "name": "Py: All Code",
-            "program": "${file}",
-            "request": "launch",
-            "type": "python"
-        }
-    ]
+	"configurations": [
+		{
+			"console": "integratedTerminal",
+			"justMyCode": true,
+			"name": "Py: Just My Code",
+			"program": "${file}",
+			"request": "launch",
+			"type": "python"
+		},
+		{
+			"console": "integratedTerminal",
+			"justMyCode": false,
+			"name": "Py: All Code",
+			"program": "${file}",
+			"request": "launch",
+			"type": "python"
+		},
+		{
+			"type": "java",
+			"name": "Launch App",
+			"request": "launch",
+			"mainClass": "App",
+			"projectName": "web-eid-javacard-applet_ebb2c0e3"
+		}
+	]
 }

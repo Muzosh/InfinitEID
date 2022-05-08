@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+    <servlet>
+        <servlet-name>eGov</servlet-name>
+        <servlet-class>eGov</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>eGov</servlet-name>
+        <url-pattern>/eGov</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet>
+        <servlet-name>Health</servlet-name>
+        <servlet-class>Health</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Health</servlet-name>
+        <url-pattern>/Health</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>Default</servlet-name>
+        <servlet-class>Default</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Default</servlet-name>
+        <url-pattern>/Default</url-pattern>
+    </servlet-mapping>
+    <!--security-constraint>
+        <web-resource-collection>
+            <web-resource-name>all</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint-->
+</web-app>

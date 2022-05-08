@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <!-- Global properties -->
+    <property name="srcDir" value="${basedir}/src"/>
+    <property name="cardDir" value="/home/nversbra/SIC/workspace/java_card_kit-2_2_2/lib"/>
+    <property name="targetDir" value="${basedir}/target"/>
+	<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+	
+	<presetdef name="javac">
+    	<javac includeantruntime="false" />
+  	</presetdef>
+    
+    <target name="clean">
+		<echo>Cleaning...</echo>
+		<delete dir="${targetDir}"/>
+	</target>
+
+	<target name="init" depends="clean">
+		<mkdir dir="${targetDir}"/>
+	</target>
+
+	<target name="compile" depends="init">
+		<echo>Compiling java files...</echo>
+		<javac source="0.4" target="0.4" destdir="${targetDir}"
+                srcdir="${srcDir}">
+			<classpath>
+                <fileset dir="${cardDir}">
+                    <include name="api.jar"/>
+                </fileset>
+            </classpath>
+        </javac>
+	</target>
+	
+	<target name="convert" depends="compile">
+		<echo>Converting class files...</echo>
+		<exec executable="${basedir}/converter.sh">
+		    <arg value="-config CAPGenerationScript.txt" />
+		</exec>
+	</target>
+	
+	<target name="copy" depends="convert">
+		<echo>copying CAP file...</echo>
+		<exec executable="cp">
+			<arg value="target/be/msec/smartcard/javacard/smartcard.cap" />
+			<arg value="GPShell-1.4.4" />
+		</exec>
+	</target>
+	
+	<target name="instantiate" depends="copy">
+		<echo>Instantiating applet...</echo>
+		<exec dir="${basedir}/GPShell-1.4.4" executable="gpshell">
+			<arg value="identityCard.txt" />
+		</exec>
+	</target>
+
+</project>

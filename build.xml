@@ -2,7 +2,7 @@
 <project basedir=".">
     <taskdef name="javacard" classname="pro.javacard.ant.JavaCard" classpath="ant-javacard.jar" />
     <javacard jckit="sdks/jc304_kit">
-        <cap output="webeid-applet.cap" sources="webeid-applet/src" aid="0102030405">
+        <cap output="webeid-applet.cap" sources="src/webeid-applet/src/webeidapplet" aid="0102030405">
             <applet class="webeidapplet.WebeidApplet" aid="0102030405060708" />
         </cap>
     </javacard>

@@ -29,5 +29,6 @@
 		"titleBar.inactiveBackground": "#ff3d0099",
 		"titleBar.inactiveForeground": "#e7e7e799"
 	},
-	"peacock.color": "#ff3d00"
+	"peacock.color": "#ff3d00",
+	"java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m"
 }
