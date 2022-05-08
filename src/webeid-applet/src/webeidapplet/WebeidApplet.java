@@ -493,7 +493,7 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		public final static byte OFFSET_SECOND_PIN_HEADER = OFFSET_CDATA + 8;
 	}
 
-	public static interface secp256r1 {
+	public static class secp256r1 {
 		public static final byte[] p = new byte[] { (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0x00,
 				(byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
 				(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xFF,
@@ -539,7 +539,7 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		public static final short k = (short) 0x01;
 	}
 
-	public static interface FileHelper {
+	public static class FileHelper {
 		public static final short FID_3F00 = (short) 0x3F00;
 		public static final short FID_AACE = (short) 0xAACE;
 		public static final short FID_DDCE = (short) 0xDDCE;
