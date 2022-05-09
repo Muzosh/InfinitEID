@@ -57,26 +57,26 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 
 	private WebeidApplet() {
 		// Create keypairs
-		authKeypair = new KeyPair(KeyPair.ALG_EC_FP, KeyBuilder.LENGTH_EC_FP_256);
-		signKeypair = new KeyPair(KeyPair.ALG_EC_FP, KeyBuilder.LENGTH_EC_FP_256);
+		authKeypair = new KeyPair(KeyPair.ALG_EC_FP, KeyBuilder.LENGTH_EC_FP_384);
+		signKeypair = new KeyPair(KeyPair.ALG_EC_FP, KeyBuilder.LENGTH_EC_FP_384);
 
 		// prepare NIST secp265r1 curve for auth key pair
 		ECPublicKey authPublic = (ECPublicKey) authKeypair.getPublic();
-		authPublic.setFieldFP(secp256r1.p, (short) 0, (short) secp256r1.p.length);
-		authPublic.setA(secp256r1.a, (short) 0, (short) secp256r1.a.length);
-		authPublic.setB(secp256r1.b, (short) 0, (short) secp256r1.b.length);
-		authPublic.setG(secp256r1.g, (short) 0, (short) secp256r1.g.length);
-		authPublic.setR(secp256r1.r, (short) 0, (short) secp256r1.r.length);
-		authPublic.setK(secp256r1.k);
+		authPublic.setFieldFP(secp384r1.p, (short) 0, (short) secp384r1.p.length);
+		authPublic.setA(secp384r1.a, (short) 0, (short) secp384r1.a.length);
+		authPublic.setB(secp384r1.b, (short) 0, (short) secp384r1.b.length);
+		authPublic.setG(secp384r1.g, (short) 0, (short) secp384r1.g.length);
+		authPublic.setR(secp384r1.r, (short) 0, (short) secp384r1.r.length);
+		authPublic.setK(secp384r1.k);
 
 		// prepare NIST secp265r1 curve for sign key pair
 		ECPublicKey signPublic = (ECPublicKey) signKeypair.getPublic();
-		signPublic.setFieldFP(secp256r1.p, (short) 0, (short) secp256r1.p.length);
-		signPublic.setA(secp256r1.a, (short) 0, (short) secp256r1.a.length);
-		signPublic.setB(secp256r1.b, (short) 0, (short) secp256r1.b.length);
-		signPublic.setG(secp256r1.g, (short) 0, (short) secp256r1.g.length);
-		signPublic.setR(secp256r1.r, (short) 0, (short) secp256r1.r.length);
-		signPublic.setK(secp256r1.k);
+		signPublic.setFieldFP(secp384r1.p, (short) 0, (short) secp384r1.p.length);
+		signPublic.setA(secp384r1.a, (short) 0, (short) secp384r1.a.length);
+		signPublic.setB(secp384r1.b, (short) 0, (short) secp384r1.b.length);
+		signPublic.setG(secp384r1.g, (short) 0, (short) secp384r1.g.length);
+		signPublic.setR(secp384r1.r, (short) 0, (short) secp384r1.r.length);
+		signPublic.setK(secp384r1.k);
 
 		// Initialize Certificate fields
 		// TODO: how big fields need to be? default cert with es256 is 1033 bytes
@@ -89,7 +89,7 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		// making transient array of length 1 for storing current selected file
 		// is only way of how to keep it in RAM, not EEPROM
 		runtime_fields = JCSystem.makeTransientShortArray((short) 1, JCSystem.CLEAR_ON_DESELECT);
-		ecc = Signature.getInstance(Signature.ALG_ECDSA_SHA_256, false);
+		ecc = Signature.getInstance(Signature.ALG_ECDSA_SHA_384, false);
 		ram_buf = JCSystem.makeTransientByteArray(RAM_BUF_SIZE, JCSystem.CLEAR_ON_DESELECT);
 		ram_chaining_cache = JCSystem.makeTransientShortArray(RAM_CHAINING_CACHE_SIZE, JCSystem.CLEAR_ON_DESELECT);
 	}
@@ -559,48 +559,52 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		public final static byte OFFSET_SECOND_PIN_HEADER = OFFSET_CDATA + 8;
 	}
 
-	public static class secp256r1 {
-		public static final byte[] p = new byte[] { (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0x00,
-				(byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-				(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xFF,
+	public static class secp384r1 {
+		public static final byte[] p = new byte[] { (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+				(byte) 0xFF, (byte) 0xFF, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0x00,
+				(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF };
 
-		public static final byte[] a = new byte[] { (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0x00,
-				(byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-				(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xFF,
+		public static final byte[] a = new byte[] { (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+				(byte) 0xFF, (byte) 0xFF, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0x00,
+				(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xFF,
 				(byte) 0xFF, (byte) 0xFF, (byte) 0xFC };
 
-		public static final byte[] b = new byte[] { (byte) 0x5A, (byte) 0xC6, (byte) 0x35, (byte) 0xD8, (byte) 0xAA,
-				(byte) 0x3A, (byte) 0x93, (byte) 0xE7, (byte) 0xB3, (byte) 0xEB, (byte) 0xBD, (byte) 0x55, (byte) 0x76,
-				(byte) 0x98, (byte) 0x86, (byte) 0xBC, (byte) 0x65, (byte) 0x1D, (byte) 0x06, (byte) 0xB0, (byte) 0xCC,
-				(byte) 0x53, (byte) 0xB0, (byte) 0xF6, (byte) 0x3B, (byte) 0xCE, (byte) 0x3C, (byte) 0x3E, (byte) 0x27,
-				(byte) 0xD2, (byte) 0x60, (byte) 0x4B };
+		public static final byte[] b = new byte[] { (byte) 0xB3, (byte) 0x31, (byte) 0x2F, (byte) 0xA7, (byte) 0xE2,
+				(byte) 0x3E, (byte) 0xE7, (byte) 0xE4, (byte) 0x98, (byte) 0x8E, (byte) 0x05, (byte) 0x6B, (byte) 0xE3,
+				(byte) 0xF8, (byte) 0x2D, (byte) 0x19, (byte) 0x18, (byte) 0x1D, (byte) 0x9C, (byte) 0x6E, (byte) 0xFE,
+				(byte) 0x81, (byte) 0x41, (byte) 0x12, (byte) 0x03, (byte) 0x14, (byte) 0x08, (byte) 0x8F, (byte) 0x50,
+				(byte) 0x13, (byte) 0x87, (byte) 0x5A, (byte) 0xC6, (byte) 0x56, (byte) 0x39, (byte) 0x8D, (byte) 0x8A,
+				(byte) 0x2E, (byte) 0xD1, (byte) 0x9D, (byte) 0x2A, (byte) 0x85, (byte) 0xC8, (byte) 0xED, (byte) 0xD3,
+				(byte) 0xEC, (byte) 0x2A, (byte) 0xEF };
 
-		public static final byte[] g = new byte[] { (byte) 0x04, (byte) 0x6B,
-				(byte) 0x17, (byte) 0xD1, (byte) 0xF2,
-				(byte) 0xE1, (byte) 0x2C, (byte) 0x42, (byte) 0x47, (byte) 0xF8, (byte) 0xBC,
-				(byte) 0xE6, (byte) 0xE5,
-				(byte) 0x63, (byte) 0xA4, (byte) 0x40, (byte) 0xF2, (byte) 0x77, (byte) 0x03,
-				(byte) 0x7D, (byte) 0x81,
-				(byte) 0x2D, (byte) 0xEB, (byte) 0x33, (byte) 0xA0, (byte) 0xF4, (byte) 0xA1,
-				(byte) 0x39, (byte) 0x45,
-				(byte) 0xD8, (byte) 0x98, (byte) 0xC2, (byte) 0x96, (byte) 0x4F, (byte) 0xE3,
-				(byte) 0x42, (byte) 0xE2,
-				(byte) 0xFE, (byte) 0x1A, (byte) 0x7F, (byte) 0x9B, (byte) 0x8E, (byte) 0xE7,
-				(byte) 0xEB, (byte) 0x4A,
-				(byte) 0x7C, (byte) 0x0F, (byte) 0x9E, (byte) 0x16, (byte) 0x2B, (byte) 0xCE,
-				(byte) 0x33, (byte) 0x57,
-				(byte) 0x6B, (byte) 0x31, (byte) 0x5E, (byte) 0xCE, (byte) 0xCB, (byte) 0xB6,
-				(byte) 0x40, (byte) 0x68,
-				(byte) 0x37, (byte) 0xBF, (byte) 0x51, (byte) 0xF5 };
+		public static final byte[] g = new byte[] { (byte) 0x04, (byte) 0xAA, (byte) 0x87, (byte) 0xCA, (byte) 0x22,
+				(byte) 0xBE, (byte) 0x8B, (byte) 0x05, (byte) 0x37, (byte) 0x8E, (byte) 0xB1, (byte) 0xC7, (byte) 0x1E,
+				(byte) 0xF3, (byte) 0x20, (byte) 0xAD, (byte) 0x74, (byte) 0x6E, (byte) 0x1D, (byte) 0x3B, (byte) 0x62,
+				(byte) 0x8B, (byte) 0xA7, (byte) 0x9B, (byte) 0x98, (byte) 0x59, (byte) 0xF7, (byte) 0x41, (byte) 0xE0,
+				(byte) 0x82, (byte) 0x54, (byte) 0x2A, (byte) 0x38, (byte) 0x55, (byte) 0x02, (byte) 0xF2, (byte) 0x5D,
+				(byte) 0xBF, (byte) 0x55, (byte) 0x29, (byte) 0x6C, (byte) 0x3A, (byte) 0x54, (byte) 0x5E, (byte) 0x38,
+				(byte) 0x72, (byte) 0x76, (byte) 0x0A, (byte) 0xB7, (byte) 0x36, (byte) 0x17, (byte) 0xDE, (byte) 0x4A,
+				(byte) 0x96, (byte) 0x26, (byte) 0x2C, (byte) 0x6F, (byte) 0x5D, (byte) 0x9E, (byte) 0x98, (byte) 0xBF,
+				(byte) 0x92, (byte) 0x92, (byte) 0xDC, (byte) 0x29, (byte) 0xF8, (byte) 0xF4, (byte) 0x1D, (byte) 0xBD,
+				(byte) 0x28, (byte) 0x9A, (byte) 0x14, (byte) 0x7C, (byte) 0xE9, (byte) 0xDA, (byte) 0x31, (byte) 0x13,
+				(byte) 0xB5, (byte) 0xF0, (byte) 0xB8, (byte) 0xC0, (byte) 0x0A, (byte) 0x60, (byte) 0xB1, (byte) 0xCE,
+				(byte) 0x1D, (byte) 0x7E, (byte) 0x81, (byte) 0x9D, (byte) 0x7A, (byte) 0x43, (byte) 0x1D, (byte) 0x7C,
+				(byte) 0x90, (byte) 0xEA, (byte) 0x0E, (byte) 0x5F };
 
-		public static final byte[] r = new byte[] { (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0x00,
-				(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
-				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xBC, (byte) 0xE6, (byte) 0xFA, (byte) 0xAD, (byte) 0xA7,
-				(byte) 0x17, (byte) 0x9E, (byte) 0x84, (byte) 0xF3, (byte) 0xB9, (byte) 0xCA, (byte) 0xC2, (byte) 0xFC,
-				(byte) 0x63, (byte) 0x25, (byte) 0x51 };
+		public static final byte[] r = new byte[] { (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+				(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xC7, (byte) 0x63, (byte) 0x4D, (byte) 0x81, (byte) 0xF4,
+				(byte) 0x37, (byte) 0x2D, (byte) 0xDF, (byte) 0x58, (byte) 0x1A, (byte) 0x0D, (byte) 0xB2, (byte) 0x48,
+				(byte) 0xB0, (byte) 0xA7, (byte) 0x7A, (byte) 0xEC, (byte) 0xEC, (byte) 0x19, (byte) 0x6A, (byte) 0xCC,
+				(byte) 0xC5, (byte) 0x29, (byte) 0x73, };
 
 		public static final short k = (short) 0x01;
 	}

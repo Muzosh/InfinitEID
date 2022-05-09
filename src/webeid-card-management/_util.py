@@ -132,7 +132,7 @@ def handle_pk_and_cert_init(
     public_key = send(
         conn, build_apdu(APDU_LIST[f"get_{operation}_public_key"])
     )
-    public_key = ECC.import_key(bytes(public_key), curve_name="p256")
+    public_key = ECC.import_key(bytes(public_key), curve_name="p384")
     public_key = public_key.export_key(format="DER")
 
     # load root CA and root private key
