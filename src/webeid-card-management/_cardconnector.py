@@ -53,11 +53,24 @@ def connect():
     conn.addObserver(ConsoleCardConnectionObserver())
 
     # the observer will trace on the console
-    
     return conn
 
 
 def send(conn, apdu):
+
+    # command chaining
+    if apdu[0] & 0x10 == 0x10 and apdu[4] > 255:
+        header = apdu[:4]
+        chunks = [apdu[5:][i : i + 255] for i in range(0, apdu[4], 255)]
+
+        for chunk in chunks[:-1]:
+            transmit(conn, header + [len(chunk)] + chunk)
+        transmit(conn, [0x00]+ header[1:] + [len(chunks[-1])] + chunks[-1])
+    else:
+        return transmit(conn, apdu)
+
+
+def transmit(conn, apdu):
     try:
         conn.connect(CardConnection.T0_protocol)
     except:
@@ -68,9 +81,9 @@ def send(conn, apdu):
     if [sw1, sw2] == [0x90, 0x00]:
         return data
     elif sw1 == 0x61:
-        return send(conn, [0x00, 0xC0, 0x00, 0x00, sw2])
+        return data + send(conn, [0x00, 0xC0, 0x00, 0x00, sw2])
     elif sw1 == 0x6C and sw2 != 0x00:
-        return send(conn, apdu[0:4] + [sw2])
+        return data + send(conn, apdu[0:4] + [sw2])
     else:
         print(
             "Error: %02x %02x, sending APDU: %s"

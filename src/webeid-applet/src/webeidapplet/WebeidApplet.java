@@ -69,8 +69,8 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		authPublic.setR(secp256r1.r, (short) 0, (short) secp256r1.r.length);
 		authPublic.setK(secp256r1.k);
 
-		// prepare NIST secp265r1 curve for auth key pair
-		ECPublicKey signPublic = (ECPublicKey) authKeypair.getPublic();
+		// prepare NIST secp265r1 curve for sign key pair
+		ECPublicKey signPublic = (ECPublicKey) signKeypair.getPublic();
 		signPublic.setFieldFP(secp256r1.p, (short) 0, (short) secp256r1.p.length);
 		signPublic.setA(secp256r1.a, (short) 0, (short) secp256r1.a.length);
 		signPublic.setB(secp256r1.b, (short) 0, (short) secp256r1.b.length);
@@ -167,6 +167,7 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 					break;
 				case IsoHelper.INS_PERFORM_SIGNATURE:
 					performSignature(apdu, buffer);
+					break;
 				case IsoHelper.INS_GENERATE_KEYPAIR:
 					generateKeypair(apdu, buffer);
 					break;
@@ -175,6 +176,12 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 					break;
 				case IsoHelper.INS_STORE_CERTIFICATE:
 					storeCertificate(apdu, buffer);
+					break;
+				case IsoHelper.INS_GET_CERTIFICATE:
+					getCertificate(apdu, buffer);
+					break;
+				case IsoHelper.INS_GET_RESPONSE:
+					getResponse(apdu);
 					break;
 				default:
 					ISOException.throwIt(IsoHelper.SW_INS_NOT_SUPPORTED);
@@ -229,12 +236,11 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		short offset = Util.makeShort(buffer[IsoHelper.OFFSET_P1], buffer[IsoHelper.OFFSET_P2]);
 		// len = le
 		short len = apdu.setOutgoing();
+
 		if (runtime_fields[selectedfile] == FileHelper.FID_AACE) {
-			Util.arrayCopyNonAtomic(authcert, (short) 0, ram_buf, (short) 0, len);
-			sendLargeData(apdu, offset, len);
+			sendSmallData(apdu, authcert, offset, len);
 		} else if (runtime_fields[selectedfile] == FileHelper.FID_DDCE) {
-			Util.arrayCopyNonAtomic(signcert, (short) 0, ram_buf, (short) 0, len);
-			sendLargeData(apdu, offset, len);
+			sendSmallData(apdu, signcert, offset, len);
 		} else {
 			ISOException.throwIt(IsoHelper.SW_FILE_NOT_FOUND);
 		}
@@ -305,16 +311,41 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 
 	private void storeCertificate(APDU apdu, byte[] buffer) {
 		byte p1 = buffer[IsoHelper.OFFSET_P1];
-		short len = apdu.setIncomingAndReceive();
-		short offset = Util.makeShort(buffer[IsoHelper.OFFSET_CDATA], buffer[IsoHelper.OFFSET_CDATA + 1]);
+		short recvLen = doChainingOrExtAPDU(apdu);
+
+		if (!apdu.isCommandChainingCLA()) {
+			if (p1 == (byte) 0x01) {
+				Util.arrayCopyNonAtomic(ram_buf, (short) 0, authcert, (short) 0,
+						recvLen);
+				clearRamBuf();
+			} else if (p1 == (byte) 0x02) {
+				Util.arrayCopyNonAtomic(ram_buf, (short) 0, signcert, (short) 0,
+						recvLen);
+				clearRamBuf();
+			} else
+				ISOException.throwIt(IsoHelper.SW_INCORRECT_P1P2);
+		}
+	}
+
+	private void getCertificate(APDU apdu, byte[] buffer) {
+		byte p1 = buffer[IsoHelper.OFFSET_P1];
+		short le = apdu.setOutgoing();
 		if (p1 == (byte) 0x01) {
-			Util.arrayCopyNonAtomic(buffer, (short) (IsoHelper.OFFSET_CDATA + 2), authcert, offset,
-					(short) (len - 2));
+			Util.arrayCopyNonAtomic(authcert, (short) 0, ram_buf, (short) 0,
+					(short) authcert.length);
+			sendLargeData(apdu, (short) 0, (short) authcert.length);
 		} else if (p1 == (byte) 0x02) {
-			Util.arrayCopyNonAtomic(buffer, (short) (IsoHelper.OFFSET_CDATA + 2), signcert, offset,
-					(short) (len - 2));
-		} else
+			Util.arrayCopyNonAtomic(signcert, (short) 0, ram_buf, (short) 0,
+					(short) signcert.length);
+			sendLargeData(apdu, (short) 0, (short) signcert.length);
+		} else {
 			ISOException.throwIt(IsoHelper.SW_INCORRECT_P1P2);
+		}
+
+	}
+
+	private void clearRamBuf() {
+		Util.arrayFillNonAtomic(ram_buf, (short) 0, (short) ram_buf.length, (byte) 0);
 	}
 
 	/**
@@ -363,16 +394,16 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 			apdu.setOutgoingLength(len);
 			apdu.sendBytesLong(ram_buf, pos, len);
 		} else {
-			// We have 256 Bytes send-capacity per APDU.
+			// We have 255 Bytes send-capacity per APDU.
 			// Send directly from ram_buf, then prepare for chaining.
-			short sendLen = len > 256 ? 256 : len;
+			short sendLen = len > 255 ? 255 : len;
 			apdu.setOutgoingLength(sendLen);
 			apdu.sendBytesLong(ram_buf, pos, sendLen);
 			short bytesLeft = (short) (len - sendLen);
 			if (bytesLeft > 0) {
 				ram_chaining_cache[RAM_CHAINING_CACHE_OFFSET_BYTES_REMAINING] = bytesLeft;
 				ram_chaining_cache[RAM_CHAINING_CACHE_OFFSET_CURRENT_POS] = (short) (pos + sendLen);
-				short getRespLen = bytesLeft > 256 ? 256 : bytesLeft;
+				short getRespLen = bytesLeft > 255 ? 255 : bytesLeft;
 				ISOException.throwIt((short) (IsoHelper.SW_BYTES_REMAINING_00 | getRespLen));
 				// The next part of the data is now in ram_buf, metadata is in
 				// ram_chaining_cache.
@@ -386,6 +417,10 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 	}
 
 	public void sendSmallData(APDU apdu, byte[] data, short offset, short len) {
+		// Return what is left if application asked for more
+		if ((short) (offset + len) > (short) data.length)
+			len = (short) (data.length - offset);
+
 		// Copy data
 		Util.arrayCopyNonAtomic(data, offset, apdu.getBuffer(), (short) 0, len);
 
@@ -448,6 +483,36 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		}
 	}
 
+	/**
+	 * \brief Process the GET RESPONSE APDU (INS=C0).
+	 *
+	 * If there is content available in ram_buf that could not be sent in the last
+	 * operation,
+	 * the host should use this APDU to get the data. The data is cached in ram_buf.
+	 *
+	 * \param apdu The GET RESPONSE apdu.
+	 *
+	 * \throw ISOException SW_CONDITIONS_NOT_SATISFIED, SW_UNKNOWN,
+	 * SW_CORRECT_LENGTH.
+	 */
+	private void getResponse(APDU apdu) {
+		byte[] buf = apdu.getBuffer();
+		short le = apdu.setOutgoing();
+
+		if (ram_chaining_cache[RAM_CHAINING_CACHE_OFFSET_BYTES_REMAINING] <= (short) 0) {
+			ISOException.throwIt(IsoHelper.SW_CONDITIONS_NOT_SATISFIED);
+		}
+
+		short expectedLe = ram_chaining_cache[RAM_CHAINING_CACHE_OFFSET_BYTES_REMAINING] > 255 ? 255
+				: ram_chaining_cache[RAM_CHAINING_CACHE_OFFSET_BYTES_REMAINING];
+		if (le != expectedLe) {
+			ISOException.throwIt((short) (IsoHelper.SW_CORRECT_LENGTH_00 | expectedLe));
+		}
+
+		sendLargeData(apdu, ram_chaining_cache[RAM_CHAINING_CACHE_OFFSET_CURRENT_POS],
+				ram_chaining_cache[RAM_CHAINING_CACHE_OFFSET_BYTES_REMAINING]);
+	}
+
 	public static interface IsoHelper extends javacard.framework.ISO7816 {
 		// CLAs
 		public final static byte CLA_ISO_STANDARD = (byte) 0x00;
@@ -477,6 +542,7 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		public final static byte INS_PERFORM_SIGNATURE = (byte) 0x2A;
 		public final static byte INS_GET_PUBLIC_KEY = (byte) 0x02;
 		public final static byte INS_STORE_CERTIFICATE = (byte) 0x03;
+		public final static byte INS_GET_CERTIFICATE = (byte) 0x04;
 		public final static byte INS_GET_RESPONSE = (byte) 0xC0;
 
 		// SWs that are not in ISO7816 interface
