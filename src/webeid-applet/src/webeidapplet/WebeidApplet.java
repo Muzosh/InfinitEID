@@ -249,8 +249,6 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 	private void internalAuthenticate(APDU apdu, byte[] buffer) {
 		short len = apdu.setIncomingAndReceive();
 		ecc.init(authKeypair.getPrivate(), Signature.MODE_SIGN);
-		// TODO: maybe will need offsetcdata + 1 and len - 1 since Lc is not added in
-		// app - but probably not
 		short len2 = ecc.signPreComputedHash(buffer, IsoHelper.OFFSET_CDATA, len, ram_buf, (short) 0);
 		sendSmallData(apdu, ram_buf, (short) 0, len2);
 	}
