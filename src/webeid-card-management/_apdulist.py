@@ -1,0 +1,17 @@
+APDU_LIST = {
+    "select_main_aid": "00:A4:04:00:08:01:02:03:04:05:06:07:08",
+    "select_master_file": "00:A4:00:0C:00",
+    "select_auth_cert": "00:A4:02:0C:02:AA:CE",
+    "select_sign_cert": "00:A4:02:0C:02:DD:CE",
+    "read_binary": "00:B0:00:00:le",
+    "internal_authenticate": "00:88:00:00:Lc:DATA",
+    "perform_signature": "00:2A:9E:9A:Lc:DATA",
+    "generate_auth_keypair": "00:01:01:08",
+    "generate_sign_keypair": "00:01:02:08",
+    "get_auth_public_key": "00:02:01:09",
+    "get_sign_public_key": "00:02:02:09",
+    "store_auth_certificate": "10:03:01:00:Lc:DATA",
+    "store_sign_certificate": "10:03:02:00:Lc:DATA",
+    "get_auth_certificate": "00:04:01:00",
+    "get_sign_certificate": "00:04:02:00",
+}

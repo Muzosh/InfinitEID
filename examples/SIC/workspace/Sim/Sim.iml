@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_5" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/../../jcardsim/target/classes" />
+    <output-test url="file://$MODULE_DIR$/../../jcardsim/target/test-classes" />
+    <content url="file://$MODULE_DIR$/../../jcardsim">
+      <sourceFolder url="file://$MODULE_DIR$/../../jcardsim/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../jcardsim/src/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../../jcardsim/src/test/resources" type="java-test-resource" />
+      <excludeFolder url="file://$MODULE_DIR$/../../jcardsim/target" />
+    </content>
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="RUNTIME" name="jcardsim-2.2.2-all" level="project" />
+    <orderEntry type="module" module-name="JavaCard" />
+    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:3.8.1" level="project" />
+    <orderEntry type="library" name="Maven: org.bouncycastle:bcprov-jdk14:1.46" level="project" />
+    <orderEntry type="library" name="Maven: oracle.javacard:api_classic:2.2.2" level="project" />
+    <orderEntry type="library" name="Maven: org.ow2.asm:asm-all:5.0.3" level="project" />
+  </component>
+</module>
