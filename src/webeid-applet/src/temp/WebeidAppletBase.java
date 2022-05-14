@@ -4,14 +4,14 @@ import javacard.framework.*;
 import javacard.security.*;
 import javacardx.crypto.*;
 
-public class WebeidAppletOld extends Applet {
+public class WebeidAppletBase extends Applet {
     private RandomData rnd;
 
     public static void install(byte[] ba, short ofs, byte len) {
-        (new WebeidAppletOld()).register();
+        (new WebeidAppletBase()).register();
     }
 
-    private WebeidAppletOld() {
+    private WebeidAppletBase() {
         rnd = RandomData.getInstance(RandomData.ALG_SECURE_RANDOM);
     }
 

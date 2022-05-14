@@ -12,7 +12,7 @@ import javacard.security.Signature;
 import javacardx.apdu.ExtendedLength;
 import webeidapplet.WebeidApplet;
 
-public class WebeidAppletDev extends Applet implements ExtendedLength {
+public class WebeidAppletTemp extends Applet implements ExtendedLength {
 	/* Card-specific configuration */
 	public static final boolean DEF_EXT_APDU = false;
 	public static final boolean DEF_PRIVATE_KEY_IMPORT_ALLOWED = false;

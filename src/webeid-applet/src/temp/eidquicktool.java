@@ -7,12 +7,13 @@ import javacard.framework.JCSystem;
 import javacard.framework.OwnerPIN;
 import javacard.framework.Util;
 import javacard.security.KeyPair;
-import javacard.security.RSAPrivateKey;
 import javacard.security.RSAPrivateCrtKey;
 import javacard.security.RSAPublicKey;
 import javacard.security.RandomData;
 import javacardx.crypto.Cipher;
-import org.globalplatform.GPSystem;
+import temp.java.be.fedict.eidapplet.EidCard;
+import temp.java.be.fedict.eidapplet.MasterFile;
+import temp.java.org.globalplatform.GPSystem;
 
 public class eidquicktool extends javacard.framework.Applet {
 	/* APDU header related constants */
@@ -93,9 +94,13 @@ public class eidquicktool extends javacard.framework.Applet {
 	private final static byte ALG_SHA1_PKCS1 = (byte) 0x02;
 	private final static byte ALG_MD5_PKCS1 = (byte) 0x04;
 	private final static byte[] PKCS1_HEADER = { (byte) 0x00 };
-	private final static byte[] PKCS1_SHA1_HEADER = { (byte) 0x00, (byte) 0x30, (byte) 0x21, (byte) 0x30, (byte) 0x09, (byte) 0x06, (byte) 0x05, (byte) 0x2b, (byte) 0x0e, (byte) 0x03, (byte) 0x02, (byte) 0x1a, (byte) 0x05, (byte) 0x00, (byte) 0x04,
+	private final static byte[] PKCS1_SHA1_HEADER = { (byte) 0x00, (byte) 0x30, (byte) 0x21, (byte) 0x30, (byte) 0x09,
+			(byte) 0x06, (byte) 0x05, (byte) 0x2b, (byte) 0x0e, (byte) 0x03, (byte) 0x02, (byte) 0x1a, (byte) 0x05,
+			(byte) 0x00, (byte) 0x04,
 			(byte) 0x14 };
-	private final static byte[] PKCS1_MD5_HEADER = { (byte) 0x00, (byte) 0x30, (byte) 0x20, (byte) 0x30, (byte) 0x0c, (byte) 0x06, (byte) 0x08, (byte) 0x2a, (byte) 0x86, (byte) 0x48, (byte) 0x86, (byte) 0xf7, (byte) 0x0d, (byte) 0x02, (byte) 0x05,
+	private final static byte[] PKCS1_MD5_HEADER = { (byte) 0x00, (byte) 0x30, (byte) 0x20, (byte) 0x30, (byte) 0x0c,
+			(byte) 0x06, (byte) 0x08, (byte) 0x2a, (byte) 0x86, (byte) 0x48, (byte) 0x86, (byte) 0xf7, (byte) 0x0d,
+			(byte) 0x02, (byte) 0x05,
 			(byte) 0x05, (byte) 0x00, (byte) 0x04, (byte) 0x10 };
 	private byte[] signatureType; // transient byte array with 1 element
 	private final static byte NO_SIGNATURE = (byte) 0x00;
@@ -103,14 +108,12 @@ public class eidquicktool extends javacard.framework.Applet {
 	private final static byte AUTHENTICATION = (byte) 0x82;
 	private final static byte NON_REPUDIATION = (byte) 0x83;
 	private final static byte CA_ROLE = (byte) 0x87;
-	
+
 	// make this static to save some memory
 	protected static KeyPair basicKeyPair;
 	protected static KeyPair authKeyPair;
 	protected static KeyPair nonRepKeyPair;
-	
-	
-	
+
 	// reuse these objects in all subclasses, otherwise we will use up all
 	// memory
 	private static Cipher cipher;
@@ -139,7 +142,9 @@ public class eidquicktool extends javacard.framework.Applet {
 	protected final static short CA_CERTIFICATE = (short) 0x503A;
 	protected final static short ROOT_CA_CERTIFICATE = (short) 0x503B;
 	protected final static short RRN_CERTIFICATE = (short) 0x503C;
-	protected ElementaryFile objectDirectoryFile, tokenInfo, authenticationObjectDirectoryFile, privateKeyDirectoryFile, certificateDirectoryFile, authenticationCertificate, nonRepudiationCertificate, caCertificate, rootCaCertificate, rrnCertificate;
+	protected ElementaryFile objectDirectoryFile, tokenInfo, authenticationObjectDirectoryFile, privateKeyDirectoryFile,
+			certificateDirectoryFile, authenticationCertificate, nonRepudiationCertificate, caCertificate,
+			rootCaCertificate, rrnCertificate;
 	// data under ID directory
 	protected final static short IDENTITY = (short) 0x4031;
 	protected final static short SGN_IDENTITY = (short) 0x4032;
@@ -148,7 +153,8 @@ public class eidquicktool extends javacard.framework.Applet {
 	protected final static short PHOTO = (short) 0x4035;
 	protected final static short CA_ROLE_ID = (short) 0x4038;
 	protected final static short PREFERENCES = (short) 0x4039;
-	protected ElementaryFile identityFile, identityFileSignature, addressFile, addressFileSignature, photoFile, caRoleIDFile, preferencesFile;
+	protected ElementaryFile identityFile, identityFileSignature, addressFile, addressFileSignature, photoFile,
+			caRoleIDFile, preferencesFile;
 	/*
 	 * different file operations see ISO 7816-4 table 17+18
 	 */
@@ -186,6 +192,7 @@ public class eidquicktool extends javacard.framework.Applet {
 	// only 5000 internal authenticates can be done and then the activation
 	// PIN needs to be checked again
 	private short internalAuthenticateCounter = 5000;
+
 	/**
 	 * called by the JCRE to create an applet instance
 	 */
@@ -193,6 +200,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// create a eID card applet instance
 		new eidquicktool();
 	}
+
 	/**
 	 * private constructor - called by the install method to instantiate a
 	 * EidCard instance
@@ -216,6 +224,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// register the applet instance with the JCRE
 		register();
 	}
+
 	/**
 	 * initialize the applet when it is selected
 	 * 
@@ -226,6 +235,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		clear();
 		return true;
 	}
+
 	/**
 	 * perform any cleanup and bookkeeping tasks before the applet is deselected
 	 */
@@ -233,6 +243,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		clear();
 		return;
 	}
+
 	/**
 	 * perform any cleanup tasks and set default selectedFile
 	 */
@@ -249,6 +260,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		 * transient so no need to reset these manually
 		 */
 	}
+
 	/**
 	 * process APDUs
 	 */
@@ -269,7 +281,8 @@ public class eidquicktool extends javacard.framework.Applet {
 		 * of a PIN Verify APDU (because the type gets overwritten to a wrong
 		 * value) and at the end of a "generate signature" and PIN Change APDU
 		 */
-		if ((buffer[ISO7816.OFFSET_INS] != INS_GENERATE_SIGNATURE) && (buffer[ISO7816.OFFSET_INS] != INS_CHANGE_PIN) && (buffer[ISO7816.OFFSET_INS] != INS_GET_KEY))
+		if ((buffer[ISO7816.OFFSET_INS] != INS_GENERATE_SIGNATURE) && (buffer[ISO7816.OFFSET_INS] != INS_CHANGE_PIN)
+				&& (buffer[ISO7816.OFFSET_INS] != INS_GET_KEY))
 			setPreviousApduType(OTHER);
 		// return if the APDU is the applet SELECT command
 		if (selectingApplet()) {
@@ -278,93 +291,94 @@ public class eidquicktool extends javacard.framework.Applet {
 		if (buffer[ISO7816.OFFSET_CLA] == EIDCARD_CLA_1)
 			// check the INS byte to decide which service method to call
 			switch (buffer[ISO7816.OFFSET_INS]) {
-			// case INS_CHANGE_ATR :
-			// changeATR(apdu);
-			// break;
-			case INS_VERIFY_PIN:
-				verifyPin(apdu, buffer);
-				break;
-			case INS_CHANGE_PIN:
-				changePin(apdu, buffer);
-				break;
-			case INS_UNBLOCK:
-				unblock(apdu, buffer);
-				break;
-			case INS_GET_CHALLENGE:
-				getChallenge(apdu, buffer);
-				break;
-			case INS_PREPARE_SIGNATURE:
-				prepareForSignature(apdu, buffer);
-				break;
-			case INS_GENERATE_SIGNATURE:
-				generateSignature(apdu, buffer);
-				break;
-			case INS_GENERATE_KEYPAIR:
-				generateKeyPair(apdu);
-				break;
-			case INS_INTERNAL_AUTHENTICATE:
-				internalAuthenticate(apdu, buffer);
-				break;
-			case INS_GET_RESPONSE:
-				// if only T=0 supported: remove
-				// not possible in case of T=0 protocol
-				if (APDU.getProtocol() == APDU.PROTOCOL_T1)
-					getResponse(apdu, buffer);
-				else
+				// case INS_CHANGE_ATR :
+				// changeATR(apdu);
+				// break;
+				case INS_VERIFY_PIN:
+					verifyPin(apdu, buffer);
+					break;
+				case INS_CHANGE_PIN:
+					changePin(apdu, buffer);
+					break;
+				case INS_UNBLOCK:
+					unblock(apdu, buffer);
+					break;
+				case INS_GET_CHALLENGE:
+					getChallenge(apdu, buffer);
+					break;
+				case INS_PREPARE_SIGNATURE:
+					prepareForSignature(apdu, buffer);
+					break;
+				case INS_GENERATE_SIGNATURE:
+					generateSignature(apdu, buffer);
+					break;
+				case INS_GENERATE_KEYPAIR:
+					generateKeyPair(apdu);
+					break;
+				case INS_INTERNAL_AUTHENTICATE:
+					internalAuthenticate(apdu, buffer);
+					break;
+				case INS_GET_RESPONSE:
+					// if only T=0 supported: remove
+					// not possible in case of T=0 protocol
+					if (APDU.getProtocol() == APDU.PROTOCOL_T1)
+						getResponse(apdu, buffer);
+					else
+						ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
+					break;
+				case INS_SELECT_FILE:
+					selectFile(apdu, buffer);
+					break;
+				case INS_ACTIVATE_FILE:
+					activateFile(apdu, buffer);
+					break;
+				case INS_DEACTIVATE_FILE:
+					deactivateFile(apdu, buffer);
+					break;
+				case INS_READ_BINARY:
+					readBinary(apdu, buffer);
+					break;
+				case INS_UPDATE_BINARY:
+					updateBinary(apdu, buffer);
+					break;
+				case INS_ERASE_BINARY:
+					eraseBinary(apdu, buffer);
+					break;
+				default:
 					ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
-				break;
-			case INS_SELECT_FILE:
-				selectFile(apdu, buffer);
-				break;
-			case INS_ACTIVATE_FILE:
-				activateFile(apdu, buffer);
-				break;
-			case INS_DEACTIVATE_FILE:
-				deactivateFile(apdu, buffer);
-				break;
-			case INS_READ_BINARY:
-				readBinary(apdu, buffer);
-				break;
-			case INS_UPDATE_BINARY:
-				updateBinary(apdu, buffer);
-				break;
-			case INS_ERASE_BINARY:
-				eraseBinary(apdu, buffer);
-				break;
-			default:
-				ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
-				break;
+					break;
 			}
 		else if (buffer[ISO7816.OFFSET_CLA] == EIDCARD_CLA_2)
 			switch (buffer[ISO7816.OFFSET_INS]) {
-			case INS_GET_KEY:
-				getPublicKey(apdu);
-				break;
-			case INS_PUT_KEY:
-				putPublicKey(apdu, buffer);
-				break;
-			case INS_ERASE_KEY:
-				eraseKey(apdu, buffer);
-				break;
-			case INS_ACTIVATE_KEY:
-				activateKey(apdu, buffer);
-				break;
-			case INS_DEACTIVATE_KEY:
-				deactivateKey(apdu, buffer);
-				break;
-			case INS_GET_CARD_DATA:
-				getCardData(apdu, buffer);
-				break;
-			case INS_LOG_OFF:
-				logOff(apdu, buffer);
-				break;
-			// case INS_BLOCK :
-			// blockCard(apdu, buffer);
-			// break;
+				case INS_GET_KEY:
+					getPublicKey(apdu);
+					break;
+				case INS_PUT_KEY:
+					putPublicKey(apdu, buffer);
+					break;
+				case INS_ERASE_KEY:
+					eraseKey(apdu, buffer);
+					break;
+				case INS_ACTIVATE_KEY:
+					activateKey(apdu, buffer);
+					break;
+				case INS_DEACTIVATE_KEY:
+					deactivateKey(apdu, buffer);
+					break;
+				case INS_GET_CARD_DATA:
+					getCardData(apdu, buffer);
+					break;
+				case INS_LOG_OFF:
+					logOff(apdu, buffer);
+					break;
+				// case INS_BLOCK :
+				// blockCard(apdu, buffer);
+				// break;
 			}
 		else
 			ISOException.throwIt(ISO7816.SW_CLA_NOT_SUPPORTED);
 	}
+
 	/**
 	 * Gives back information on this eID
 	 * 
@@ -387,34 +401,35 @@ public class eidquicktool extends javacard.framework.Applet {
 		// check Le
 		// if (le != dataLen)
 		// ISOException.throwIt((short)(ISO7816.SW_WRONG_LENGTH));
-		byte version[] = { (byte) 0xA5, (byte) 0x03, (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x11, (byte) 0x00, (byte) 0x02, (byte) 0x00, (byte) 0x01, (byte) 0x01, (byte) 0x0F };
+		byte version[] = { (byte) 0xA5, (byte) 0x03, (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x11, (byte) 0x00,
+				(byte) 0x02, (byte) 0x00, (byte) 0x01, (byte) 0x01, (byte) 0x0F };
 		byte chipNumber[] = new byte[(short) (dataLen + 12)];
 		Util.arrayCopy(data, pos, chipNumber, (short) 0, dataLen);
 		Util.arrayCopy(version, (short) 0, chipNumber, dataLen, (short) 12);
 		// //Set serial number
 		// Util.arrayCopy(tokenInfo.getData(), (short) 7, tempBuffer, (short) 0,
 		// (short) 16);
-		//		
+		//
 		// //Set component code: TODO
-		//		
-		//		
+		//
+		//
 		// //Set OS number: TODO
-		//		
-		//		
+		//
+		//
 		// //Set OS version: TODO
 		// JCSystem.getVersion();
-		//		
+		//
 		// //Set softmask number: TODO
-		//		
+		//
 		// //Set softmask version: TODO
-		//		
+		//
 		// //Set applet version: TODO : 4 bytes in file system
-		//		
-		//		
+		//
+		//
 		// //Set Interface version: TODO
-		//		
+		//
 		// //Set PKCS#15 version: TODO
-		//		
+		//
 		// //Set applet life cycle
 		// tempBuffer[(short)(le-1)] = GPSystem.getCardState();
 		// set the actual number of outgoing data bytes
@@ -422,6 +437,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// send content of buffer in apdu
 		apdu.sendBytesLong(chipNumber, (short) 0, (short) chipNumber.length);
 	}
+
 	/**
 	 * verify the PIN
 	 */
@@ -433,36 +449,37 @@ public class eidquicktool extends javacard.framework.Applet {
 		apdu.setIncomingAndReceive();
 		// check PIN depending on value of P2
 		switch (buffer[ISO7816.OFFSET_P2]) {
-		case CARDHOLDER_PIN:
-			// overwrite previous APDU type
-			setPreviousApduType(VERIFY_CARDHOLDER_PIN);
-			// check the cardholder PIN
-			checkPin(cardholderPin, buffer);
-			break;
-		case ACTIVATE_PIN:
-			// check the activation PIN
-			checkPin(activationPin, buffer);
-			// if the activation PIN was entered correctly
-			if (GPSystem.getCardContentState() == GPSystem.APPLICATION_SELECTABLE)
-				// set the applet status to personalized
-				GPSystem.setCardContentState(GPSystem.CARD_SECURED);
-			// reset internal authenticate counter
-			internalAuthenticateCounter = 5000;
-			break;
-		case RESET_PIN:
-			// overwrite previous APDU type
-			setPreviousApduType(VERIFY_RESET_PIN);
-			// check the reset PIN
-			checkPin(resetPin, buffer);
-			break;
-		case UNBLOCK_PIN:
-			// check the unblock PIN: after this, the pin will be 'activated'
-			checkPin(unblockPin, buffer);
-			break;
-		default:
-			ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
+			case CARDHOLDER_PIN:
+				// overwrite previous APDU type
+				setPreviousApduType(VERIFY_CARDHOLDER_PIN);
+				// check the cardholder PIN
+				checkPin(cardholderPin, buffer);
+				break;
+			case ACTIVATE_PIN:
+				// check the activation PIN
+				checkPin(activationPin, buffer);
+				// if the activation PIN was entered correctly
+				if (GPSystem.getCardContentState() == GPSystem.APPLICATION_SELECTABLE)
+					// set the applet status to personalized
+					GPSystem.setCardContentState(GPSystem.CARD_SECURED);
+				// reset internal authenticate counter
+				internalAuthenticateCounter = 5000;
+				break;
+			case RESET_PIN:
+				// overwrite previous APDU type
+				setPreviousApduType(VERIFY_RESET_PIN);
+				// check the reset PIN
+				checkPin(resetPin, buffer);
+				break;
+			case UNBLOCK_PIN:
+				// check the unblock PIN: after this, the pin will be 'activated'
+				checkPin(unblockPin, buffer);
+				break;
+			default:
+				ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
 		}
 	}
+
 	/**
 	 * check the PIN
 	 */
@@ -485,6 +502,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		short sw = (short) (SW_WRONG_PIN_0_TRIES_LEFT | tries);
 		ISOException.throwIt(sw);
 	}
+
 	/**
 	 * change the PIN
 	 */
@@ -505,19 +523,20 @@ public class eidquicktool extends javacard.framework.Applet {
 		}
 		// P1 determines whether it is user or administrator PIN change
 		switch (buffer[ISO7816.OFFSET_P1]) {
-		case (byte) 0x00:
-			setPreviousApduType(OTHER);
-			userChangePin(apdu, buffer);
-			break;
-		case (byte) 0x01:
-			administratorChangePin(apdu, buffer);
-			break;
-		default:
-			setPreviousApduType(OTHER);
-			ISOException.throwIt(ISO7816.SW_INCORRECT_P1P2);
-			break;
+			case (byte) 0x00:
+				setPreviousApduType(OTHER);
+				userChangePin(apdu, buffer);
+				break;
+			case (byte) 0x01:
+				administratorChangePin(apdu, buffer);
+				break;
+			default:
+				setPreviousApduType(OTHER);
+				ISOException.throwIt(ISO7816.SW_INCORRECT_P1P2);
+				break;
 		}
 	}
+
 	/**
 	 * user changes the PIN
 	 */
@@ -539,6 +558,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// so that cardholder access rights are immediately granted
 		cardholderPin.check(buffer, OFFSET_SECOND_PIN_HEADER, PIN_SIZE);
 	}
+
 	/**
 	 * administrator changes the PIN
 	 */
@@ -572,6 +592,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// include header as well in PIN object
 		cardholderPin.update(buffer, OFFSET_PIN_HEADER, PIN_SIZE);
 	}
+
 	/**
 	 * check if new PIN conforms to internal format
 	 * 
@@ -604,6 +625,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		}
 		return true;
 	}
+
 	/**
 	 * check if new PIN is based on the last generated random challenge
 	 */
@@ -625,6 +647,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		}
 		return true;
 	}
+
 	/**
 	 * Discard current fulfilled access conditions
 	 */
@@ -640,6 +663,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		unblockPin.reset();
 		activationPin.reset();
 	}
+
 	/**
 	 * unblock card
 	 */
@@ -656,6 +680,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// set the applet status back to personalized
 		GPSystem.setCardContentState(GPSystem.CARD_SECURED);
 	}
+
 	/**
 	 * prepare for authentication or non repudiation signature
 	 */
@@ -671,44 +696,46 @@ public class eidquicktool extends javacard.framework.Applet {
 			ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
 		// the first 2 bytes of the data part should be 0x04 0x80
 		// the fourth byte should be 0x84
-		if ((buffer[ISO7816.OFFSET_CDATA] != (byte) 0x04) || (buffer[ISO7816.OFFSET_CDATA + 1] != (byte) 0x80) || (buffer[ISO7816.OFFSET_CDATA + 3] != (byte) 0x84))
+		if ((buffer[ISO7816.OFFSET_CDATA] != (byte) 0x04) || (buffer[ISO7816.OFFSET_CDATA + 1] != (byte) 0x80)
+				|| (buffer[ISO7816.OFFSET_CDATA + 3] != (byte) 0x84))
 			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
 		// initialize signature object depending on hash function type
 		switch (buffer[ISO7816.OFFSET_CDATA + 2]) {
-		case ALG_SHA1_PKCS1:
-			signatureAlgorithm = ALG_SHA1_PKCS1;
-			break;
-		case ALG_MD5_PKCS1:
-			signatureAlgorithm = ALG_MD5_PKCS1;
-			break;
-		case ALG_PKCS1:
-			signatureAlgorithm = ALG_PKCS1;
-			break;
-		default: // algorithm not supported (SW=9484)
-			ISOException.throwIt(SW_ALGORITHM_NOT_SUPPORTED);
-			break;
+			case ALG_SHA1_PKCS1:
+				signatureAlgorithm = ALG_SHA1_PKCS1;
+				break;
+			case ALG_MD5_PKCS1:
+				signatureAlgorithm = ALG_MD5_PKCS1;
+				break;
+			case ALG_PKCS1:
+				signatureAlgorithm = ALG_PKCS1;
+				break;
+			default: // algorithm not supported (SW=9484)
+				ISOException.throwIt(SW_ALGORITHM_NOT_SUPPORTED);
+				break;
 		}
 		// signature type is determined by the the last byte
 		switch (buffer[ISO7816.OFFSET_CDATA + 4]) {
-		case BASIC:
-			setSignatureType(BASIC);
-			break;
-		case AUTHENTICATION: // use authentication private key
-			setSignatureType(AUTHENTICATION);
-			break;
-		case NON_REPUDIATION: // use non repudiation private key
-			setSignatureType(NON_REPUDIATION);
-			break;
-		case CA_ROLE:
-			setSignatureType(NO_SIGNATURE);
-			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
-			break;
-		default:
-			setSignatureType(NO_SIGNATURE);
-			ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
-			break;
+			case BASIC:
+				setSignatureType(BASIC);
+				break;
+			case AUTHENTICATION: // use authentication private key
+				setSignatureType(AUTHENTICATION);
+				break;
+			case NON_REPUDIATION: // use non repudiation private key
+				setSignatureType(NON_REPUDIATION);
+				break;
+			case CA_ROLE:
+				setSignatureType(NO_SIGNATURE);
+				ISOException.throwIt(ISO7816.SW_WRONG_DATA);
+				break;
+			default:
+				setSignatureType(NO_SIGNATURE);
+				ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
+				break;
 		}
 	}
+
 	/**
 	 * generate (authentication or non repudiation) signature
 	 */
@@ -752,19 +779,17 @@ public class eidquicktool extends javacard.framework.Applet {
 		// check if cardholder PIN was entered correctly
 		if (!cardholderPin.isValidated())
 			ISOException.throwIt(ISO7816.SW_SECURITY_STATUS_NOT_SATISFIED);
-		
-		
-		
+
 		switch (signatureAlgorithm) {
-		case ALG_MD5_PKCS1:
-			generatePkcs1Md5Signature(apdu, buffer);
-			break;
-		case ALG_SHA1_PKCS1:
-			generatePkcs1Sha1Signature(apdu, buffer);
-			break;
-		case ALG_PKCS1:
-			generatePkcs1Signature(apdu, buffer);
-			break;
+			case ALG_MD5_PKCS1:
+				generatePkcs1Md5Signature(apdu, buffer);
+				break;
+			case ALG_SHA1_PKCS1:
+				generatePkcs1Sha1Signature(apdu, buffer);
+				break;
+			case ALG_PKCS1:
+				generatePkcs1Signature(apdu, buffer);
+				break;
 		}
 		// if T=1, store signature in sigBuffer so that it can latter be sent
 		if (APDU.getProtocol() == APDU.PROTOCOL_T1) {
@@ -776,6 +801,7 @@ public class eidquicktool extends javacard.framework.Applet {
 			apdu.setOutgoingAndSend((short) 0, (short) 128);
 		}
 	}
+
 	/**
 	 * generate PKCS#1 MD5 signature
 	 */
@@ -788,9 +814,9 @@ public class eidquicktool extends javacard.framework.Applet {
 			ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
 		// use the correct key
 		if (getSignatureType() == NON_REPUDIATION)
-			cipher.init((RSAPrivateCrtKey)nonRepKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
+			cipher.init((RSAPrivateCrtKey) nonRepKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
 		if (getSignatureType() == AUTHENTICATION)
-			cipher.init((RSAPrivateCrtKey)authKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
+			cipher.init((RSAPrivateCrtKey) authKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
 		// prepare the message buffer to the PKCS#1 (v1.5) structure
 		preparePkcs1ClearText(messageBuffer, ALG_MD5_PKCS1, lc);
 		// copy the MD5 hash from the APDU to the message buffer
@@ -798,6 +824,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// generate signature
 		cipher.doFinal(messageBuffer, (short) 0, (short) 128, buffer, (short) 0);
 	}
+
 	/**
 	 * generate PKCS#1 SHA1 signature
 	 */
@@ -805,24 +832,19 @@ public class eidquicktool extends javacard.framework.Applet {
 		// receive the data that needs to be signed
 		short byteRead = apdu.setIncomingAndReceive();
 		// check Lc
-		
-		
+
 		short lc = (short) (buffer[ISO7816.OFFSET_LC] & 0x00FF);
 		if ((lc != 20) || (byteRead != 20))
 			ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
-		
-		
-		
+
 		// use the correct key
 		if (getSignatureType() == NON_REPUDIATION)
-			//cipher.init(nonRepPrivateKey, Cipher.MODE_ENCRYPT);
-			cipher.init((RSAPrivateCrtKey)nonRepKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
-		
-		
+			// cipher.init(nonRepPrivateKey, Cipher.MODE_ENCRYPT);
+			cipher.init((RSAPrivateCrtKey) nonRepKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
+
 		if (getSignatureType() == AUTHENTICATION)
-			cipher.init((RSAPrivateCrtKey)authKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
-		
-		
+			cipher.init((RSAPrivateCrtKey) authKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
+
 		// prepare the message buffer to the PKCS#1 (v1.5) structure
 		preparePkcs1ClearText(messageBuffer, ALG_SHA1_PKCS1, lc);
 		// copy the SHA1 hash from the APDU to the message buffer
@@ -830,6 +852,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// generate signature
 		cipher.doFinal(messageBuffer, (short) 0, (short) 128, buffer, (short) 0);
 	}
+
 	/**
 	 * generate PKCS#1 signature
 	 */
@@ -842,9 +865,9 @@ public class eidquicktool extends javacard.framework.Applet {
 			ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
 		// use the correct key
 		if (getSignatureType() == NON_REPUDIATION)
-			cipher.init((RSAPrivateCrtKey)nonRepKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
+			cipher.init((RSAPrivateCrtKey) nonRepKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
 		if (getSignatureType() == AUTHENTICATION)
-			cipher.init((RSAPrivateCrtKey)authKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
+			cipher.init((RSAPrivateCrtKey) authKeyPair.getPrivate(), Cipher.MODE_ENCRYPT);
 		// prepare the message buffer to the PKCS#1 (v1.5) structure
 		preparePkcs1ClearText(messageBuffer, ALG_PKCS1, lc);
 		// copy the clear text from the APDU to the message buffer
@@ -852,6 +875,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// generate signature
 		cipher.doFinal(messageBuffer, (short) 0, (short) 128, buffer, (short) 0);
 	}
+
 	/**
 	 * prepare the clear text buffer with correct PKCS#1 encoding
 	 */
@@ -867,8 +891,10 @@ public class eidquicktool extends javacard.framework.Applet {
 			header = PKCS1_SHA1_HEADER;
 		if (type == ALG_MD5_PKCS1)
 			header = PKCS1_MD5_HEADER;
-		Util.arrayCopy(header, (short) 0, messageBuffer, (short) (128 - messageLength - header.length), (short) header.length);
+		Util.arrayCopy(header, (short) 0, messageBuffer, (short) (128 - messageLength - header.length),
+				(short) header.length);
 	}
+
 	/**
 	 * generate a key pair
 	 * 
@@ -898,44 +924,42 @@ public class eidquicktool extends javacard.framework.Applet {
 		// buffer[offset]);
 		if (buffer[offset] != (byte) 0x80)
 			ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
-		
-		
-		
+
 		// This is commented out as changing exponent makes getting modulus
 		// impossible on some java cards
 		// ((RSAPublicKey)tempkp.getPublic()).setExponent(buffer, (short)(13),
 		// (short)3);
 		setPreviousApduType(GENERATE_KEY_PAIR);
 		switch (buffer[ISO7816.OFFSET_P2]) {
-		case BASIC:
-			basicKeyPair = new KeyPair(KeyPair.ALG_RSA_CRT, (short) (1024));
-			basicKeyPair.genKeyPair();
-			
-			break;
-		case AUTHENTICATION: // use authentication private key
-			authKeyPair = new KeyPair(KeyPair.ALG_RSA_CRT, (short) (1024));
-			authKeyPair.genKeyPair();
-			
-			break;
-		case NON_REPUDIATION: // use non repudiation private key
-			nonRepKeyPair = new KeyPair(KeyPair.ALG_RSA_CRT, (short) (1024));
-			nonRepKeyPair.genKeyPair();
-			
-			break;
-		default:
-			
-			ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
-			break;
+			case BASIC:
+				basicKeyPair = new KeyPair(KeyPair.ALG_RSA_CRT, (short) (1024));
+				basicKeyPair.genKeyPair();
+
+				break;
+			case AUTHENTICATION: // use authentication private key
+				authKeyPair = new KeyPair(KeyPair.ALG_RSA_CRT, (short) (1024));
+				authKeyPair.genKeyPair();
+
+				break;
+			case NON_REPUDIATION: // use non repudiation private key
+				nonRepKeyPair = new KeyPair(KeyPair.ALG_RSA_CRT, (short) (1024));
+				nonRepKeyPair.genKeyPair();
+
+				break;
+			default:
+
+				ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
+				break;
 		}
 	}
+
 	/**
 	 * get a public key. for the authentication and non-repudiation key, this
 	 * method can only be called after the generateKeyPair method was called
 	 * 
 	 */
 	private void getPublicKey(APDU apdu) {
-		
-		
+
 		byte[] buffer = apdu.getBuffer();
 		// if this is thrown: problem accesses getPreviousapdu
 		// check P1
@@ -952,7 +976,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		tempBuffer[(short) 10] = (byte) 0x03;
 		tempBuffer[(short) 11] = (byte) 0x81;
 		tempBuffer[(short) 12] = (byte) 0x80;
-		if (buffer[ISO7816.OFFSET_P2] == AUTHENTICATION){
+		if (buffer[ISO7816.OFFSET_P2] == AUTHENTICATION) {
 			if (getPreviousApduType() != GENERATE_KEY_PAIR) {
 				authKeyPair.getPublic().clearKey();
 				setPreviousApduType(OTHER);
@@ -960,7 +984,7 @@ public class eidquicktool extends javacard.framework.Applet {
 			}
 			((RSAPublicKey) authKeyPair.getPublic()).getExponent(tempBuffer, (short) 7);
 			((RSAPublicKey) authKeyPair.getPublic()).getModulus(tempBuffer, (short) 13);
-		}else if (buffer[ISO7816.OFFSET_P2] == NON_REPUDIATION) { 
+		} else if (buffer[ISO7816.OFFSET_P2] == NON_REPUDIATION) {
 			if (getPreviousApduType() != GENERATE_KEY_PAIR) {
 				nonRepKeyPair.getPublic().clearKey();
 				setPreviousApduType(OTHER);
@@ -968,8 +992,8 @@ public class eidquicktool extends javacard.framework.Applet {
 			}
 			((RSAPublicKey) nonRepKeyPair.getPublic()).getExponent(tempBuffer, (short) 7);
 			((RSAPublicKey) nonRepKeyPair.getPublic()).getModulus(tempBuffer, (short) 13);
-		
-		}else if (buffer[ISO7816.OFFSET_P2] == BASIC) {
+
+		} else if (buffer[ISO7816.OFFSET_P2] == BASIC) {
 			((RSAPublicKey) basicKeyPair.getPublic()).getExponent(tempBuffer, (short) 7);
 			((RSAPublicKey) basicKeyPair.getPublic()).getModulus(tempBuffer, (short) 13);
 		} else {
@@ -983,12 +1007,14 @@ public class eidquicktool extends javacard.framework.Applet {
 		// send content of buffer in apdu
 		apdu.sendBytesLong(tempBuffer, (short) 0, le);
 	}
+
 	/**
 	 * put a public key as commune or role key this is not supported anymore
 	 */
 	private void putPublicKey(APDU apdu, byte[] buffer) {
 		ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
 	}
+
 	/**
 	 * erase a public key (basic, commune or role key) only basic supported
 	 */
@@ -997,14 +1023,15 @@ public class eidquicktool extends javacard.framework.Applet {
 		if (buffer[ISO7816.OFFSET_P1] != (byte) 0x00)
 			ISOException.throwIt(ISO7816.SW_WRONG_P1P2);
 		switch (buffer[ISO7816.OFFSET_P2]) {
-		case BASIC:
-			basicKeyPair = null;
-			break;
-		default:
-			ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
-			break;
+			case BASIC:
+				basicKeyPair = null;
+				break;
+			default:
+				ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
+				break;
 		}
 	}
+
 	/**
 	 * activate a public authentication or non repudiation key if deactivated
 	 * keys in this applet are always active
@@ -1014,17 +1041,18 @@ public class eidquicktool extends javacard.framework.Applet {
 		if (buffer[ISO7816.OFFSET_P1] != (byte) 0x00)
 			ISOException.throwIt(ISO7816.SW_WRONG_P1P2);
 		switch (buffer[ISO7816.OFFSET_P2]) {
-		case AUTHENTICATION:
-			// activate key: key always active, do nothing
-			break;
-		case NON_REPUDIATION:
-			// activate key: key always active, do nothing
-			break;
-		default:
-			ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
-			break;
+			case AUTHENTICATION:
+				// activate key: key always active, do nothing
+				break;
+			case NON_REPUDIATION:
+				// activate key: key always active, do nothing
+				break;
+			default:
+				ISOException.throwIt(SW_REFERENCE_DATA_NOT_FOUND);
+				break;
 		}
 	}
+
 	/**
 	 * deactivate a public authentication or non repudiation key if activated as
 	 * keys are always active, throw exception
@@ -1032,6 +1060,7 @@ public class eidquicktool extends javacard.framework.Applet {
 	private void deactivateKey(APDU apdu, byte[] buffer) {
 		ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
 	}
+
 	/**
 	 * internal authenticate generates a signature with the basic private key no
 	 * security conditions needed if used for internal authentication only
@@ -1074,6 +1103,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// decrement internal authenticate counter
 		internalAuthenticateCounter--;
 	}
+
 	/**
 	 * return the generated signature in a response APDU Used in T=0 protocol
 	 */
@@ -1093,6 +1123,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// send content of sigBuffer in apdu
 		apdu.sendBytesLong(responseBuffer, offset, le);
 	}
+
 	/**
 	 * generate a random challenge
 	 */
@@ -1113,6 +1144,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// send content of buffer in apdu
 		apdu.sendBytesLong(randomBuffer, (short) 0, le);
 	}
+
 	/**
 	 * select a file on the eID card
 	 * 
@@ -1124,17 +1156,18 @@ public class eidquicktool extends javacard.framework.Applet {
 			ISOException.throwIt(ISO7816.SW_WRONG_P1P2);
 		// P1 determines the select method
 		switch (buffer[ISO7816.OFFSET_P1]) {
-		case (byte) 0x02:
-			selectByFileIdentifier(apdu, buffer);
-			break;
-		case (byte) 0x08:
-			selectByPath(apdu, buffer);
-			break;
-		default:
-			ISOException.throwIt(ISO7816.SW_INCORRECT_P1P2);
-			break;
+			case (byte) 0x02:
+				selectByFileIdentifier(apdu, buffer);
+				break;
+			case (byte) 0x08:
+				selectByPath(apdu, buffer);
+				break;
+			default:
+				ISOException.throwIt(ISO7816.SW_INCORRECT_P1P2);
+				break;
 		}
 	}
+
 	/**
 	 * select file under the current DF
 	 */
@@ -1150,13 +1183,13 @@ public class eidquicktool extends javacard.framework.Applet {
 		// if file identifier is the master file, select it immediately
 		if (fid == MF)
 			selectedFile = masterFile;
-		
+
 		else {
 			// check if the requested file exists under the current DF
 			File s = ((DedicatedFile) masterFile).getSibling(fid);
 			if (s != null)
 				selectedFile = s;
-			//the fid is an elementary file:
+			// the fid is an elementary file:
 			else {
 				s = belpicDirectory.getSibling(fid);
 				if (s != null)
@@ -1165,12 +1198,14 @@ public class eidquicktool extends javacard.framework.Applet {
 					s = idDirectory.getSibling(fid);
 					if (s != null)
 						selectedFile = s;
-					else ISOException.throwIt(ISO7816.SW_FILE_NOT_FOUND);
+					else
+						ISOException.throwIt(ISO7816.SW_FILE_NOT_FOUND);
 				}
-				
+
 			}
 		}
 	}
+
 	/**
 	 * select file by path from the MF
 	 */
@@ -1185,7 +1220,8 @@ public class eidquicktool extends javacard.framework.Applet {
 		// use the path name in the APDU data to select a file
 		File f = masterFile;
 		for (byte i = 0; i < lc; i += 2) {
-			short fid = Util.makeShort(buffer[(short) (ISO7816.OFFSET_CDATA + i)], buffer[(short) (ISO7816.OFFSET_CDATA + i + 1)]);
+			short fid = Util.makeShort(buffer[(short) (ISO7816.OFFSET_CDATA + i)],
+					buffer[(short) (ISO7816.OFFSET_CDATA + i + 1)]);
 			// MF can be explicitely or implicitely in the path name
 			if ((i == 0) && (fid == MF))
 				f = masterFile;
@@ -1199,6 +1235,7 @@ public class eidquicktool extends javacard.framework.Applet {
 			ISOException.throwIt(ISO7816.SW_FILE_NOT_FOUND);
 		selectedFile = f;
 	}
+
 	/**
 	 * activate a file on the eID card security conditions depend on file to
 	 * activate: see belgian eID content file
@@ -1209,21 +1246,22 @@ public class eidquicktool extends javacard.framework.Applet {
 			ISOException.throwIt(ISO7816.SW_WRONG_P1P2);
 		// P1 determines the select method
 		switch (buffer[ISO7816.OFFSET_P1]) {
-		case (byte) 0x02:
-			selectByFileIdentifier(apdu, buffer);
-			break;
-		case (byte) 0x08:
-			selectByPath(apdu, buffer);
-			break;
-		default:
-			ISOException.throwIt(ISO7816.SW_INCORRECT_P1P2);
-			break;
+			case (byte) 0x02:
+				selectByFileIdentifier(apdu, buffer);
+				break;
+			case (byte) 0x08:
+				selectByPath(apdu, buffer);
+				break;
+			default:
+				ISOException.throwIt(ISO7816.SW_INCORRECT_P1P2);
+				break;
 		}
 		// check if activating this file is allowed
 		if (!fileAccessAllowed(UPDATE_BINARY))
 			ISOException.throwIt(ISO7816.SW_SECURITY_STATUS_NOT_SATISFIED);
 		selectedFile.setActive(true);
 	}
+
 	/**
 	 * deactivate a file on the eID card security conditions depend on file to
 	 * activate: see belgian eID content file
@@ -1234,21 +1272,22 @@ public class eidquicktool extends javacard.framework.Applet {
 			ISOException.throwIt(ISO7816.SW_WRONG_P1P2);
 		// P1 determines the select method
 		switch (buffer[ISO7816.OFFSET_P1]) {
-		case (byte) 0x02:
-			selectByFileIdentifier(apdu, buffer);
-			break;
-		case (byte) 0x08:
-			selectByPath(apdu, buffer);
-			break;
-		default:
-			ISOException.throwIt(ISO7816.SW_INCORRECT_P1P2);
-			break;
+			case (byte) 0x02:
+				selectByFileIdentifier(apdu, buffer);
+				break;
+			case (byte) 0x08:
+				selectByPath(apdu, buffer);
+				break;
+			default:
+				ISOException.throwIt(ISO7816.SW_INCORRECT_P1P2);
+				break;
 		}
 		// check if deactivating this file is allowed
 		if (!fileAccessAllowed(UPDATE_BINARY))
 			ISOException.throwIt(ISO7816.SW_SECURITY_STATUS_NOT_SATISFIED);
 		selectedFile.setActive(false);
 	}
+
 	/**
 	 * put file that was selected with SELECT FILE in a response APDU
 	 */
@@ -1285,6 +1324,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// write selected file in APDU
 		apdu.sendBytesLong(((ElementaryFile) selectedFile).getData(), offset, le);
 	}
+
 	/**
 	 * erase data in file that was selected with SELECT FILE
 	 */
@@ -1300,6 +1340,7 @@ public class eidquicktool extends javacard.framework.Applet {
 			ISOException.throwIt(ISO7816.SW_WRONG_P1P2);
 		((ElementaryFile) selectedFile).eraseData(offset);
 	}
+
 	/**
 	 * change data in a file that was selected with SELECT FILE
 	 */
@@ -1325,6 +1366,7 @@ public class eidquicktool extends javacard.framework.Applet {
 		// update file
 		((ElementaryFile) selectedFile).updateData(offset, buffer, ISO7816.OFFSET_CDATA, lc);
 	}
+
 	/**
 	 * checks if a certain file operation is allowed on the currently selected
 	 * file
@@ -1355,24 +1397,28 @@ public class eidquicktool extends javacard.framework.Applet {
 		// default to false
 		return false;
 	}
+
 	/**
 	 * set the previous APDU type to a certain value
 	 */
 	private void setPreviousApduType(byte type) {
 		previousApduType[0] = type;
 	}
+
 	/**
 	 * return the previous APDU type
 	 */
 	private byte getPreviousApduType() {
 		return previousApduType[0];
 	}
+
 	/**
 	 * set the signature type to a certain value
 	 */
 	private void setSignatureType(byte type) {
 		signatureType[0] = type;
 	}
+
 	/**
 	 * return the signature type
 	 */

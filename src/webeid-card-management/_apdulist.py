@@ -14,4 +14,12 @@ APDU_LIST = {
     "store_sign_certificate": "10:03:02:00:Lc:DATA",
     "get_auth_certificate": "00:04:01:00",
     "get_sign_certificate": "00:04:02:00",
+    "verify_auth_pin": "00:20:00:01:Lc:DATA",
+    "verify_sign_pin": "00:20:00:02:Lc:DATA",
+    "verify_admin_pin": "00:20:00:03:Lc:DATA",
+    "set_auth_pin": "00:22:00:01:Lc:DATA",
+    "set_sign_pin": "00:22:00:02:Lc:DATA",
+    "set_admin_pin": "00:22:00:03:Lc:DATA",
+    "change_auth_pin": "00:24:00:01:Lc:DATA",
+    "change_sign_pin": "00:24:00:02:Lc:DATA",
 }

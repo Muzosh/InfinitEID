@@ -122,6 +122,15 @@ def create_cert(
     return new_cert_pem
 
 
+def set_pin(conn, pin, reference: Literal["admin", "auth", "sign"]):
+    # set pin
+    send(conn, build_apdu(APDU_LIST[f"set_{reference}_pin"], data=pin))
+    
+def verify_pin(conn, pin, reference: Literal["admin", "auth", "sign"]):
+    # set pin
+    send(conn, build_apdu(APDU_LIST[f"verify_{reference}_pin"], data=pin))
+
+
 def handle_pk_and_cert_init(
     conn, nextcloud_id, operation: Literal["auth", "sign"]
 ):
@@ -154,6 +163,7 @@ def handle_pk_and_cert_init(
         ),
     )
 
+    # TODO: put this into unit tests
     # load certificate from card with get_certificate command and
     # check if it is the same as created certificate
     cert_from_card = list(
