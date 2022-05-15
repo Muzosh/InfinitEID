@@ -22,4 +22,7 @@ APDU_LIST = {
     "set_admin_pin": "00:22:00:03:Lc:DATA",
     "change_auth_pin": "00:24:00:01:Lc:DATA",
     "change_sign_pin": "00:24:00:02:Lc:DATA",
+    "get_auth_pin_retries": "00:26:00:01:01",
+    "get_sign_pin_retries": "00:26:00:02:01",
+    "get_admin_pin_retries": "00:26:00:03:01",
 }

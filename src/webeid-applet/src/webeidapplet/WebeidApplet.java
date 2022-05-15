@@ -21,9 +21,9 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 	public final static byte GET_PUBLIC_KEY_REFERENCE = (byte) 0x09;
 
 	// PIN
-	public final static byte AUTH_PIN_MAX_LIMIT = (byte) 3;
-	public final static byte SIGN_PIN_MAX_LIMIT = (byte) 3;
-	public final static byte ADMIN_PIN_MAX_LIMIT = (byte) 1;
+	public final static byte AUTH_PIN_RETRIES_LIMIT = (byte) 3;
+	public final static byte SIGN_PIN_RETRIES_LIMIT = (byte) 3;
+	public final static byte ADMIN_PIN_RETRIES_LIMIT = (byte) 1;
 	public final static byte PIN_MAX_SIZE = (byte) 12;
 	public final static byte AUTH_PIN_REFERENCE = (byte) 0x01;
 	public final static byte SING_PIN_REFERENCE = (byte) 0x02;
@@ -81,9 +81,9 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		sign_keypair = new KeyPair(KeyPair.ALG_EC_FP, KeyBuilder.LENGTH_EC_FP_384);
 
 		// Initialize pins
-		adminPIN = new OwnerPIN(ADMIN_PIN_MAX_LIMIT, PIN_MAX_SIZE);
-		authPIN = new OwnerPIN(AUTH_PIN_MAX_LIMIT, PIN_MAX_SIZE);
-		signPIN = new OwnerPIN(SIGN_PIN_MAX_LIMIT, PIN_MAX_SIZE);
+		adminPIN = new OwnerPIN(ADMIN_PIN_RETRIES_LIMIT, PIN_MAX_SIZE);
+		authPIN = new OwnerPIN(AUTH_PIN_RETRIES_LIMIT, PIN_MAX_SIZE);
+		signPIN = new OwnerPIN(SIGN_PIN_RETRIES_LIMIT, PIN_MAX_SIZE);
 
 		// Initialize certificate fields
 		// TODO: how big fields need to be? default cert with es256 is 1033 bytes
@@ -195,6 +195,9 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 				case IsoHelper.INS_VERIFY_PIN:
 					verifyPin(apdu, buffer);
 					break;
+				case IsoHelper.INS_PIN_RETRIES_LEFT:
+					retriesLeft(apdu, buffer);
+					break;
 				// Following cases need user PIN
 				case IsoHelper.INS_PERFORM_SIGNATURE:
 					performSignature(apdu, buffer);
@@ -285,6 +288,7 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		short len = apdu.setIncomingAndReceive();
 		ecc.init(auth_keypair.getPrivate(), Signature.MODE_SIGN);
 		short len2 = ecc.signPreComputedHash(buffer, IsoHelper.OFFSET_CDATA, len, ram_buf, (short) 0);
+		authPIN.reset();
 		sendSmallData(apdu, ram_buf, (short) 0, len2);
 	}
 
@@ -300,6 +304,7 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		if (parameters == (short) 0x9E9A) {
 			ecc.init(sign_keypair.getPrivate(), Signature.MODE_SIGN);
 			short len2 = ecc.signPreComputedHash(buffer, IsoHelper.OFFSET_CDATA, len, ram_buf, (short) 0);
+			signPIN.reset();
 			sendSmallData(apdu, ram_buf, (short) 0, len2);
 		} else {
 			ISOException.throwIt(IsoHelper.SW_INCORRECT_P1P2);
@@ -324,6 +329,7 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		if (p2 == KEYPAIR_GENERATION_REFERENCE) {
 			secp384r1.setCurveParameters((ECPublicKey) key_pair.getPublic());
 			key_pair.genKeyPair();
+			adminPIN.reset();
 			ISOException.throwIt(IsoHelper.SW_NO_ERROR);
 		} else {
 			ISOException.throwIt(IsoHelper.SW_INCORRECT_P1P2);
@@ -367,12 +373,14 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 				clearRamBuf();
 			} else
 				ISOException.throwIt(IsoHelper.SW_INCORRECT_P1P2);
+
+			adminPIN.reset();
 		}
 	}
 
 	private void getCertificate(APDU apdu, byte[] buffer) {
 		byte p1 = buffer[IsoHelper.OFFSET_P1];
-		short le = apdu.setOutgoing();
+		apdu.setOutgoing();
 		if (p1 == (byte) 0x01) {
 			Util.arrayCopyNonAtomic(auth_cert, (short) 0, ram_buf, (short) 0,
 					(short) auth_cert.length);
@@ -416,22 +424,44 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 				ISOException.throwIt(IsoHelper.SW_WRONG_P1P2);
 		}
 
-		try {
-			if (pin.getTriesRemaining() == (byte) 0) {
-				ISOException.throwIt(IsoHelper.SW_PIN_BLOCKED);
-			}
-		} catch (Throwable e) {
-			ISOException.throwIt(IsoHelper.SW_APPLET_SELECT_FAILED);
+		if (pin.getTriesRemaining() == (byte) 0) {
+			ISOException.throwIt(IsoHelper.SW_PIN_BLOCKED);
 		}
 
-		try {
-			// Check the PIN.
-			if (!pin.check(buffer, offset_cdata, (byte) lc)) {
-				ISOException.throwIt((short) (IsoHelper.SW_WRONG_PIN_X_TRIES_LEFT | pin.getTriesRemaining()));
-			}
-		} catch (Throwable e) {
-			ISOException.throwIt(IsoHelper.SW_CLA_NOT_SUPPORTED);
+		// Check the PIN.
+		if (!pin.check(buffer, offset_cdata, (byte) lc)) {
+			ISOException.throwIt((short) (IsoHelper.SW_WRONG_PIN_X_TRIES_LEFT | pin.getTriesRemaining()));
 		}
+	}
+
+	private void retriesLeft(APDU apdu, byte[] buffer) {
+		byte p1 = buffer[IsoHelper.OFFSET_P1];
+		byte p2 = buffer[IsoHelper.OFFSET_P2];
+		OwnerPIN pin = null;
+		byte retries_limit = (byte) 0;
+
+		if (p1 != (byte) 0x00) {
+			ISOException.throwIt(ISO7816.SW_INCORRECT_P1P2);
+		}
+
+		switch (p2) {
+			case ADMIN_PIN_REFERENCE:
+				pin = adminPIN;
+				retries_limit = ADMIN_PIN_RETRIES_LIMIT;
+				break;
+			case AUTH_PIN_REFERENCE:
+				pin = authPIN;
+				retries_limit = AUTH_PIN_RETRIES_LIMIT;
+				break;
+			case SING_PIN_REFERENCE:
+				pin = signPIN;
+				retries_limit = SIGN_PIN_RETRIES_LIMIT;
+				break;
+			default:
+				ISOException.throwIt(IsoHelper.SW_WRONG_P1P2);
+		}
+		Util.setShort(buffer, (short) 0x00, Util.makeShort(pin.getTriesRemaining(), retries_limit));
+		apdu.setOutgoingAndSend((short) 0x00, (short) 0x02);
 	}
 
 	private void changePin(APDU apdu, byte[] buffer) {
@@ -501,6 +531,7 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 
 		pin.update(buffer, IsoHelper.OFFSET_CDATA, (byte) lc);
 		pin.resetAndUnblock();
+		adminPIN.reset();
 
 		if (!admin_pin_set && p2 == ADMIN_PIN_REFERENCE) {
 			admin_pin_set = true;
@@ -708,6 +739,7 @@ public class WebeidApplet extends Applet implements ExtendedLength {
 		public static byte INS_GET_CERTIFICATE = (byte) 0x04;
 		public static byte INS_GET_RESPONSE = (byte) 0xC0;
 		public static byte INS_SET_PIN = (byte) 0x22;
+		public static byte INS_PIN_RETRIES_LEFT = (byte) 0x26;
 
 		// SWs that are not in ISO7816 interface
 		public static short SW_ALGORITHM_NOT_SUPPORTED = (short) 0x9484;

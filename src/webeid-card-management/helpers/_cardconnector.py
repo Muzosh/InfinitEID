@@ -1,4 +1,3 @@
-import os
 import sys
 
 from smartcard.CardConnectionObserver import CardConnectionObserver
@@ -65,7 +64,7 @@ def send(conn, apdu):
 
         for chunk in chunks[:-1]:
             transmit(conn, header + [len(chunk)] + chunk)
-        transmit(conn, [0x00]+ header[1:] + [len(chunks[-1])] + chunks[-1])
+        transmit(conn, [0x00] + header[1:] + [len(chunks[-1])] + chunks[-1])
     else:
         return transmit(conn, apdu)
 
@@ -80,13 +79,12 @@ def transmit(conn, apdu):
 
     if [sw1, sw2] == [0x90, 0x00]:
         return data
-    elif sw1 == 0x61:
+
+    if sw1 == 0x61:
         return data + send(conn, [0x00, 0xC0, 0x00, 0x00, sw2])
-    elif sw1 == 0x6C and sw2 != 0x00:
+
+    if sw1 == 0x6C and sw2 != 0x00:
         return data + send(conn, apdu[0:4] + [sw2])
-    else:
-        print(
-            "Error: %02x %02x, sending APDU: %s"
-            % (sw1, sw2, toHexString(apdu))
-        )
-        sys.exit(1)
+
+    print("Error: %02x %02x, sending APDU: %s" % (sw1, sw2, toHexString(apdu)))
+    sys.exit(1)
