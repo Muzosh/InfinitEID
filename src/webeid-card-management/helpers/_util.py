@@ -9,8 +9,9 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.x509.oid import NameOID
 
-from _apdulist import APDU_LIST
-from _cardconnector import send
+from helpers import _config
+from helpers._apdulist import APDU_LIST
+from helpers._cardconnector import send
 
 
 def cls():
@@ -76,7 +77,7 @@ def create_cert(
     root_certificate: bytes,
     root_key_input: bytes,
 ):
-    one_month = datetime.timedelta(30, 0, 0)
+    validity = datetime.timedelta(_config.CARD_CERT_VALIDITY_DAYS, 0, 0)
 
     root_key = serialization.load_pem_private_key(
         root_key_input, password=None, backend=default_backend()
@@ -108,7 +109,7 @@ def create_cert(
         .public_key(public_key)
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.datetime.utcnow())
-        .not_valid_after(datetime.datetime.utcnow() + one_month)
+        .not_valid_after(datetime.datetime.utcnow() + validity)
         .add_extension(
             x509.ExtendedKeyUsage([x509.OID_CLIENT_AUTH]),
             critical=True,
@@ -122,10 +123,41 @@ def create_cert(
     return new_cert_pem
 
 
+def set_pins(conn):
+    set_pin(conn, _config.ADMIN_PIN, "admin")
+
+    verify_pin(conn, _config.ADMIN_PIN, "admin")
+    set_pin(conn, _config.USER_AUTH_PIN, "auth")
+    verify_pin(conn, _config.USER_AUTH_PIN, "auth")
+
+    verify_pin(conn, _config.ADMIN_PIN, "admin")
+    set_pin(conn, _config.USER_SIGN_PIN, "sign")
+    verify_pin(conn, _config.USER_SIGN_PIN, "sign")
+
+
+def set_pin(conn, pin, reference: Literal["admin", "auth", "sign"]):
+    send(
+        conn,
+        build_apdu(APDU_LIST[f"set_{reference}_pin"], data=encode_pin(pin)),
+    )
+
+
+def verify_pin(conn, pin, reference: Literal["admin", "auth", "sign"]):
+    send(
+        conn,
+        build_apdu(APDU_LIST[f"verify_{reference}_pin"], data=encode_pin(pin)),
+    )
+
+
+def encode_pin(pin):
+    return [ord(str(num)) for num in pin]
+
+
 def handle_pk_and_cert_init(
     conn, nextcloud_id, operation: Literal["auth", "sign"]
 ):
     # generate keypairs
+    verify_pin(conn, _config.ADMIN_PIN, "admin")
     send(conn, build_apdu(APDU_LIST[f"generate_{operation}_keypair"]))
 
     # obtain public key from card so we can create certificate of it
@@ -136,10 +168,10 @@ def handle_pk_and_cert_init(
     public_key = public_key.export_key(format="DER")
 
     # load root CA and root private key
-    currentdir = Path(os.path.dirname(__file__))
-    with open(
-        currentdir / "trustedCert" / "rootcertificate.pem", "rb"
-    ) as f1, open(currentdir / "trustedCert" / "rootkey.pem", "rb") as f2:
+    cert_directory = Path(_config.ROOT_CERT_DIRECTORY)
+    with open(cert_directory / "rootcertificate.pem", "rb") as f1, open(
+        cert_directory / "rootkey.pem", "rb"
+    ) as f2:
         root_certificate = f1.read()
         root_key = f2.read()
 
@@ -147,6 +179,7 @@ def handle_pk_and_cert_init(
     created_cert = list(
         create_cert(nextcloud_id, public_key, root_certificate, root_key)
     )
+    verify_pin(conn, _config.ADMIN_PIN, "admin")
     send(
         conn,
         build_apdu(
@@ -154,19 +187,20 @@ def handle_pk_and_cert_init(
         ),
     )
 
-    # load certificate from card with get_certificate command and
-    # check if it is the same as created certificate
-    cert_from_card = list(
-        send(conn, build_apdu(APDU_LIST[f"get_{operation}_certificate"]))
-    )
-    length = (cert_from_card[2] << 8) + cert_from_card[3] + 4
-    cert_from_card = cert_from_card[:length]
-    assert created_cert == cert_from_card
+    # # TODO: put this into unit tests
+    # # load certificate from card with get_certificate command and
+    # # check if it is the same as created certificate
+    # cert_from_card = list(
+    #     send(conn, build_apdu(APDU_LIST[f"get_{operation}_certificate"]))
+    # )
+    # length = (cert_from_card[2] << 8) + cert_from_card[3] + 4
+    # cert_from_card = cert_from_card[:length]
+    # assert created_cert == cert_from_card
 
-    # load certificate from card with read_binary command and
-    # check if it is the same as created certificate
-    send(conn, build_apdu(APDU_LIST[f"select_{operation}_cert"]))
-    cert_from_card = process_read_binary(
-        conn, read_data_length_from_asn1(conn), 128
-    )
-    assert created_cert == cert_from_card
+    # # load certificate from card with read_binary command and
+    # # check if it is the same as created certificate
+    # send(conn, build_apdu(APDU_LIST[f"select_{operation}_cert"]))
+    # cert_from_card = process_read_binary(
+    #     conn, read_data_length_from_asn1(conn), 128
+    # )
+    # assert created_cert == cert_from_card
