@@ -1,5 +1,4 @@
 import argparse
-import _apdulist
 
 parser = argparse.ArgumentParser(
     description="""
@@ -17,7 +16,7 @@ parser = argparse.ArgumentParser(
     epilog="Available commands:\n"
     + "\n".join(
         f"{i :3}: {k:30} ({v})"
-        for i, (k, v) in enumerate(_apdulist.APDU_LIST.items())
+        for i, (k, v) in enumerate(APDU_LIST.items())
     ),
 )
 

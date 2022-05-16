@@ -1,0 +1,5 @@
+pycryptodomex==3.14.1
+pyscard==2.0.3
+PyYAML==6.0
+simple-term-menu==1.4.1
+-e git+https://github.com/Muzosh/web-eid-javacard-applet.git@dbbc4b78fdf3cba37b9b1d036e2730640a724ea7#egg=webeidcardmanager&subdirectory=src/webeid-card-management

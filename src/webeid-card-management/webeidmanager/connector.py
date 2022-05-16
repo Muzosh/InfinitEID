@@ -1,10 +1,11 @@
 import sys
 
 from smartcard.CardConnectionObserver import CardConnectionObserver
-from smartcard.CardConnection import CardConnection
 from smartcard.CardRequest import CardRequest
 from smartcard.CardType import AnyCardType
 from smartcard.util import toHexString
+
+from . import CONFIG
 
 
 class ConsoleCardConnectionObserver(CardConnectionObserver):
@@ -14,10 +15,10 @@ class ConsoleCardConnectionObserver(CardConnectionObserver):
     def update(self, cardconnection, cardconnectionevent):
 
         if "connect" == cardconnectionevent.type:
-            print(("connecting to " + cardconnection.getReader()))
+            print(("[.] Connecting to " + cardconnection.getReader()))
 
         elif "disconnect" == cardconnectionevent.type:
-            print(("disconnecting from " + cardconnection.getReader()))
+            print(("[.] Disconnecting from " + cardconnection.getReader()))
 
         elif "command" == cardconnectionevent.type:
             result = toHexString(cardconnectionevent.args[0])
@@ -42,10 +43,17 @@ class ConsoleCardConnectionObserver(CardConnectionObserver):
 
 
 def connect():
-    # request any type and wait for 10s for card insertion
-    print("[...] Waiting 10 seconds for card")
-    cardrequest = CardRequest(timeout=10, cardType=AnyCardType())
+    # request any card type and wait for CARD_CONNECTION_TIMEOUT_SECONDS
+    print(
+        f"[.] Waiting {CONFIG['CARD_CONNECTION_TIMEOUT_SECONDS']}",
+        "seconds for card",
+    )
+    cardrequest = CardRequest(
+        timeout=CONFIG["CARD_CONNECTION_TIMEOUT_SECONDS"],
+        cardType=AnyCardType(),
+    )
     cardservice = cardrequest.waitforcard()
+    print("[+] Card connected")
     conn = cardservice.connection
 
     # create an instance of our observer and attach to the connection
@@ -55,7 +63,7 @@ def connect():
     return conn
 
 
-def send(conn, apdu):
+def send(conn, apdu, exit_on_error=True):
 
     # command chaining
     if apdu[0] & 0x10 == 0x10 and apdu[4] > 255:
@@ -63,17 +71,18 @@ def send(conn, apdu):
         chunks = [apdu[5:][i : i + 255] for i in range(0, apdu[4], 255)]
 
         for chunk in chunks[:-1]:
-            transmit(conn, header + [len(chunk)] + chunk)
-        transmit(conn, [0x00] + header[1:] + [len(chunks[-1])] + chunks[-1])
+            transmit(conn, header + [len(chunk)] + chunk, exit_on_error)
+        transmit(
+            conn,
+            [0x00] + header[1:] + [len(chunks[-1])] + chunks[-1],
+            exit_on_error,
+        )
     else:
-        return transmit(conn, apdu)
+        return transmit(conn, apdu, exit_on_error)
 
 
-def transmit(conn, apdu):
-    try:
-        conn.connect(CardConnection.T0_protocol)
-    except:
-        conn.connect(CardConnection.T1_protocol)
+def transmit(conn, apdu, exit_on_error):
+    conn.connect()
 
     data, sw1, sw2 = conn.transmit(apdu)
 
@@ -86,5 +95,9 @@ def transmit(conn, apdu):
     if sw1 == 0x6C and sw2 != 0x00:
         return data + send(conn, apdu[0:4] + [sw2])
 
-    print("Error: %02x %02x, sending APDU: %s" % (sw1, sw2, toHexString(apdu)))
-    sys.exit(1)
+    print(
+        "[!] Error: %02x %02x, sending APDU: %s"
+        % (sw1, sw2, toHexString(apdu))
+    )
+    if exit_on_error:
+        sys.exit(1)

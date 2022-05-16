@@ -1,9 +1,10 @@
 from pathlib import Path
 from ssl import PEM_cert_to_DER_cert
-from _apdulist import APDU_LIST
-from _cardconnector import connect, send
-from _util import build_apdu
-from _parser import args
+from config.apdulist import APDU_LIST
+from .connector import connect, send
+from .util import build_apdu
+from .parser import args
+
 
 if __name__ == "__main__":
     apdu_to_send = []
@@ -31,3 +32,6 @@ if __name__ == "__main__":
 
     for apdu in apdu_to_send:
         send(conn, apdu)
+
+def run():
+    pass

@@ -9,12 +9,11 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.x509.oid import NameOID
 
-from helpers import _config
-from helpers._apdulist import APDU_LIST
-from helpers._cardconnector import send
+from . import APDU_LIST, CONFIG
+from .connector import send
 
 
-def cls():
+def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
 
 
@@ -77,7 +76,7 @@ def create_cert(
     root_certificate: bytes,
     root_key_input: bytes,
 ):
-    validity = datetime.timedelta(_config.CARD_CERT_VALIDITY_DAYS, 0, 0)
+    validity = datetime.timedelta(CONFIG["CARD_CERT_VALIDITY_DAYS"], 0, 0)
 
     root_key = serialization.load_pem_private_key(
         root_key_input, password=None, backend=default_backend()
@@ -123,29 +122,39 @@ def create_cert(
     return new_cert_pem
 
 
-def set_pins(conn):
-    set_pin(conn, _config.ADMIN_PIN, "admin")
+def set_pins(conn, admin_pin_set=False):
+    if not admin_pin_set:
+        set_pin(conn, CONFIG["ADMIN_PIN"], "admin")
+    verify_pin(conn, CONFIG["ADMIN_PIN"], "admin")
 
-    verify_pin(conn, _config.ADMIN_PIN, "admin")
-    set_pin(conn, _config.USER_AUTH_PIN, "auth")
-    verify_pin(conn, _config.USER_AUTH_PIN, "auth")
+    set_pin(conn, CONFIG["USER_AUTH_PIN"], "auth")
+    verify_pin(conn, CONFIG["USER_AUTH_PIN"], "auth")
 
-    verify_pin(conn, _config.ADMIN_PIN, "admin")
-    set_pin(conn, _config.USER_SIGN_PIN, "sign")
-    verify_pin(conn, _config.USER_SIGN_PIN, "sign")
+    verify_pin(conn, CONFIG["ADMIN_PIN"], "admin")
+
+    set_pin(conn, CONFIG["USER_SIGN_PIN"], "sign")
+    verify_pin(conn, CONFIG["USER_SIGN_PIN"], "sign")
 
 
-def set_pin(conn, pin, reference: Literal["admin", "auth", "sign"]):
+def set_pin(
+    conn, pin, reference: Literal["admin", "auth", "sign"], exit_on_error=True
+):
+    print(f"[>] Set {reference} pin")
     send(
         conn,
         build_apdu(APDU_LIST[f"set_{reference}_pin"], data=encode_pin(pin)),
+        exit_on_error,
     )
 
 
-def verify_pin(conn, pin, reference: Literal["admin", "auth", "sign"]):
+def verify_pin(
+    conn, pin, reference: Literal["admin", "auth", "sign"], exit_on_error=True
+):
+    print(f"[>] Verify {reference} pin")
     send(
         conn,
         build_apdu(APDU_LIST[f"verify_{reference}_pin"], data=encode_pin(pin)),
+        exit_on_error,
     )
 
 
@@ -157,10 +166,13 @@ def handle_pk_and_cert_init(
     conn, nextcloud_id, operation: Literal["auth", "sign"]
 ):
     # generate keypairs
-    verify_pin(conn, _config.ADMIN_PIN, "admin")
+    verify_pin(conn, CONFIG["ADMIN_PIN"], "admin")
+
+    print(f"[>] Generate {operation} keypair")
     send(conn, build_apdu(APDU_LIST[f"generate_{operation}_keypair"]))
 
     # obtain public key from card so we can create certificate of it
+    print(f"[>] Get {operation} public key")
     public_key = send(
         conn, build_apdu(APDU_LIST[f"get_{operation}_public_key"])
     )
@@ -168,7 +180,8 @@ def handle_pk_and_cert_init(
     public_key = public_key.export_key(format="DER")
 
     # load root CA and root private key
-    cert_directory = Path(_config.ROOT_CERT_DIRECTORY)
+    print("[.] Loading root certificate and root private key")
+    cert_directory = Path(CONFIG["ROOT_CA_DIRECTORY_FULL_PATH"])
     with open(cert_directory / "rootcertificate.pem", "rb") as f1, open(
         cert_directory / "rootkey.pem", "rb"
     ) as f2:
@@ -176,10 +189,13 @@ def handle_pk_and_cert_init(
         root_key = f2.read()
 
     # create new certificate and store it on card
+    print("[.] Creating user certificate")
     created_cert = list(
         create_cert(nextcloud_id, public_key, root_certificate, root_key)
     )
-    verify_pin(conn, _config.ADMIN_PIN, "admin")
+    verify_pin(conn, CONFIG["ADMIN_PIN"], "admin")
+
+    print(f"[>] Store {operation} user certificate")
     send(
         conn,
         build_apdu(
