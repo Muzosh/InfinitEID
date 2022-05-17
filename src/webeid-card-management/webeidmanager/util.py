@@ -37,11 +37,11 @@ def build_apdu(apdu, data=None, le=None):
 
 
 def read_data_length_from_asn1(conn):
-    bytes = list(send(conn, build_apdu(APDU_LIST["read_binary"], le=4)))
+    result = list(send(conn, build_apdu(APDU_LIST["read_binary"], le=4)))
 
-    assert bytes[0] == 0x30
-    assert bytes[1] == 0x82
-    return (bytes[2] << 8) + bytes[3] + 4
+    assert result[0] == 0x30
+    assert result[1] == 0x82
+    return (result[2] << 8) + result[3] + 4
 
 
 def process_read_binary(conn, length, blocklength):
@@ -105,7 +105,7 @@ def create_cert(
         x509.CertificateBuilder()
         .subject_name(new_subject)
         .issuer_name(root_cert.subject)
-        .public_key(public_key)
+        .public_key(public_key)  # type: ignore
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.datetime.utcnow())
         .not_valid_after(datetime.datetime.utcnow() + validity)
@@ -113,7 +113,7 @@ def create_cert(
             x509.ExtendedKeyUsage([x509.OID_CLIENT_AUTH]),
             critical=True,
         )
-        .sign(root_key, hashes.SHA256(), default_backend())
+        .sign(root_key, hashes.SHA256(), default_backend())  # type: ignore
     )
 
     # Return PEM
@@ -137,24 +137,41 @@ def set_pins(conn, admin_pin_set=False):
 
 
 def set_pin(
-    conn, pin, reference: Literal["admin", "auth", "sign"], exit_on_error=True
+    conn,
+    pin,
+    reference: Literal["admin", "auth", "sign"],
+    throw_exception=True,
 ):
     print(f"[>] Set {reference} pin")
-    send(
+    return send(
         conn,
         build_apdu(APDU_LIST[f"set_{reference}_pin"], data=encode_pin(pin)),
-        exit_on_error,
+        throw_exception,
     )
 
 
 def verify_pin(
-    conn, pin, reference: Literal["admin", "auth", "sign"], exit_on_error=True
+    conn,
+    pin,
+    reference: Literal["admin", "auth", "sign"],
+    throw_exception=True,
 ):
     print(f"[>] Verify {reference} pin")
-    send(
+    return send(
         conn,
         build_apdu(APDU_LIST[f"verify_{reference}_pin"], data=encode_pin(pin)),
-        exit_on_error,
+        throw_exception,
+    )
+
+
+def change_pin(
+    conn, pin, reference: Literal["auth", "sign"], throw_exception=True
+):
+    print(f"[>] Change {reference} pin")
+    return send(
+        conn,
+        build_apdu(APDU_LIST[f"change_{reference}_pin"], data=encode_pin(pin)),
+        throw_exception,
     )
 
 
@@ -191,7 +208,12 @@ def handle_pk_and_cert_init(
     # create new certificate and store it on card
     print("[.] Creating user certificate")
     created_cert = list(
-        create_cert(nextcloud_id, public_key, root_certificate, root_key)
+        create_cert(
+            nextcloud_id,
+            public_key,  # type: ignore
+            root_certificate,
+            root_key,
+        )
     )
     verify_pin(conn, CONFIG["ADMIN_PIN"], "admin")
 
@@ -203,20 +225,27 @@ def handle_pk_and_cert_init(
         ),
     )
 
-    # # TODO: put this into unit tests
-    # # load certificate from card with get_certificate command and
-    # # check if it is the same as created certificate
-    # cert_from_card = list(
-    #     send(conn, build_apdu(APDU_LIST[f"get_{operation}_certificate"]))
-    # )
-    # length = (cert_from_card[2] << 8) + cert_from_card[3] + 4
-    # cert_from_card = cert_from_card[:length]
-    # assert created_cert == cert_from_card
+    # load certificate from card with get_certificate command and
+    # check if it is the same as created certificate
+    cert_from_card = list(
+        send(conn, build_apdu(APDU_LIST[f"get_{operation}_certificate"]))
+    )
+    length = (cert_from_card[2] << 8) + cert_from_card[3] + 4
+    cert_from_card = cert_from_card[:length]
+    assert created_cert == cert_from_card, (
+        "Something went wrong with storing certificate on card"
+        "Please store it manually or reload whole applet and"
+        "run initialization again."
+    )
 
-    # # load certificate from card with read_binary command and
-    # # check if it is the same as created certificate
-    # send(conn, build_apdu(APDU_LIST[f"select_{operation}_cert"]))
-    # cert_from_card = process_read_binary(
-    #     conn, read_data_length_from_asn1(conn), 128
-    # )
-    # assert created_cert == cert_from_card
+    # load certificate from card with read_binary command and
+    # check if it is the same as created certificate
+    send(conn, build_apdu(APDU_LIST[f"select_{operation}_cert"]))
+    cert_from_card = process_read_binary(
+        conn, read_data_length_from_asn1(conn), 128
+    )
+    assert created_cert == cert_from_card, (
+        "Something went wrong with storing certificate on card"
+        "Please store it manually or reload whole applet and"
+        "run initialization again."
+    )

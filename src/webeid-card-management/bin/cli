@@ -1,5 +1,5 @@
-from distutils.command.build import build
-from json.tool import main
+#!python
+
 import os
 from ssl import DER_cert_to_PEM_cert
 
@@ -12,8 +12,9 @@ from webeidmanager.util import build_apdu, clear_screen, set_pin, verify_pin
 
 conn = connect()
 
+
 def init_menu():
-    while " " not in (
+    while " " in (
         nextcloud_id := input(
             (
                 "Input Nextcloud user ID (default from config"
@@ -30,10 +31,10 @@ def init_menu():
 
     init(nextcloud_id or CONFIG["NEXTCLOUD_ID"], bool(admin_pin_set or 0))
 
+
 def select_main_applet_menu():
     print("[>] Selecting main applet AID")
     send(conn, build_apdu(APDU_LIST["select_main_aid"]))
-    
 
 
 def get_public_key_menu():
@@ -78,7 +79,9 @@ def get_certificate_menu():
 
     print(f"[>] Get {operation} certificate")
     cert_from_card = list(
-        send(conn, build_apdu(APDU_LIST[f"get_{operation}_certificate"]), False)
+        send(
+            conn, build_apdu(APDU_LIST[f"get_{operation}_certificate"]), False
+        )
     )
     length = (cert_from_card[2] << 8) + cert_from_card[3] + 4
     cert_from_card = cert_from_card[:length]
@@ -172,7 +175,7 @@ def run_command_menu():
         le = input("Input Le in integer number: ")
 
     apdu_builded = build_apdu(apdu_str, data, le)
-    
+
     print("[>] Running selected command")
     send(conn, apdu_builded, False)
 

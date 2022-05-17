@@ -3,7 +3,7 @@ from ssl import PEM_cert_to_DER_cert
 from config.apdulist import APDU_LIST
 from .connector import connect, send
 from .util import build_apdu
-from .parser import args
+from .temp_parser import args
 
 
 if __name__ == "__main__":
@@ -32,6 +32,7 @@ if __name__ == "__main__":
 
     for apdu in apdu_to_send:
         send(conn, apdu)
+
 
 def run():
     pass

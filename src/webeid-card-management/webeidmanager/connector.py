@@ -1,5 +1,3 @@
-import sys
-
 from smartcard.CardConnectionObserver import CardConnectionObserver
 from smartcard.CardRequest import CardRequest
 from smartcard.CardType import AnyCardType
@@ -57,13 +55,14 @@ def connect():
     conn = cardservice.connection
 
     # create an instance of our observer and attach to the connection
-    conn.addObserver(ConsoleCardConnectionObserver())
+    if CONFIG["LOG_APDU"]:
+        conn.addObserver(ConsoleCardConnectionObserver())
 
     # the observer will trace on the console
     return conn
 
 
-def send(conn, apdu, exit_on_error=True):
+def send(conn, apdu, throw_exception=True) -> list:
 
     # command chaining
     if apdu[0] & 0x10 == 0x10 and apdu[4] > 255:
@@ -71,17 +70,17 @@ def send(conn, apdu, exit_on_error=True):
         chunks = [apdu[5:][i : i + 255] for i in range(0, apdu[4], 255)]
 
         for chunk in chunks[:-1]:
-            transmit(conn, header + [len(chunk)] + chunk, exit_on_error)
-        transmit(
+            transmit(conn, header + [len(chunk)] + chunk, throw_exception)
+        return transmit(
             conn,
             [0x00] + header[1:] + [len(chunks[-1])] + chunks[-1],
-            exit_on_error,
+            throw_exception,
         )
-    else:
-        return transmit(conn, apdu, exit_on_error)
+
+    return transmit(conn, apdu, throw_exception)
 
 
-def transmit(conn, apdu, exit_on_error):
+def transmit(conn, apdu, throw_exception):
     conn.connect()
 
     data, sw1, sw2 = conn.transmit(apdu)
@@ -95,9 +94,13 @@ def transmit(conn, apdu, exit_on_error):
     if sw1 == 0x6C and sw2 != 0x00:
         return data + send(conn, apdu[0:4] + [sw2])
 
+    if throw_exception:
+        raise RuntimeError(
+            "[!] Error: %02x %02x, sending APDU: %s"
+            % (sw1, sw2, toHexString(apdu))
+        )
+
     print(
         "[!] Error: %02x %02x, sending APDU: %s"
         % (sw1, sw2, toHexString(apdu))
     )
-    if exit_on_error:
-        sys.exit(1)
