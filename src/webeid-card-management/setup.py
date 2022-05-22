@@ -67,7 +67,7 @@ setup(
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
     # TODO: change url
-    url="https://github.com/pypa/sampleproject",  # Optional
+    url="https://github.com/Muzosh/web-eid-javacard-applet",  # Optional
     # This should be your name or the name of the organization which owns the
     # project.
     author="Petr Muzikant",  # Optional
@@ -167,11 +167,11 @@ setup(
     #
     # For example, the following would provide a command called `sample` which
     # executes the function `main` from this package when invoked:
-    entry_points={  # Optional
-        "console_scripts": [
-            "sample=sample:main",
-        ],
-    },
+    # entry_points={  # Optional
+    #     "console_scripts": [
+    #         "sample=sample:main",
+    #     ],
+    # },
     # List additional URLs that are relevant to your project as a dict.
     #
     # This field corresponds to the "Project-URL" metadata fields:
@@ -183,9 +183,9 @@ setup(
     # what's used to render the link text on PyPI.
     # TODO: add project urls
     project_urls={  # Optional
-        "Bug Reports": "https://github.com/pypa/sampleproject/issues",
-        "Funding": "https://donate.pypi.org",
-        "Say Thanks!": "http://saythanks.io/to/example",
-        "Source": "https://github.com/pypa/sampleproject/",
+        "Bug Reports": "https://github.com/Muzosh/web-eid-javacard-applet/issues",
+        # "Funding": "https://donate.pypi.org",
+        # "Say Thanks!": "http://saythanks.io/to/example",
+        "Source": "https://github.com/Muzosh/web-eid-javacard-applet/src/webeid-card-management",
     },
 )
