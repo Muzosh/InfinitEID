@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir=".">
+    <taskdef name="javacard" classname="pro.javacard.ant.JavaCard" classpath="ant-javacard.jar" />
+    <javacard jckit="sdks/jc304_kit">
+        <cap output="InfinitEID-applet.cap" sources="src/InfinitEID" aid="0102030405">
+            <applet class="InfinitEID.InfinitEIDApplet" aid="0102030405060708" />
+        </cap>
+    </javacard>
+</project>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project basedir=".">
-    <taskdef name="javacard" classname="pro.javacard.ant.JavaCard" classpath="ant-javacard.jar" />
-    <javacard jckit="sdks/jc304_kit">
-        <cap output="webeid-applet.cap" sources="src/webeidapplet" aid="0102030405">
-            <applet class="webeidapplet.WebeidApplet" aid="0102030405060708" />
-        </cap>
-    </javacard>
-</project>

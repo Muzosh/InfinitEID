@@ -1,4 +1,0 @@
-pycryptodomex==3.14.1
-pyscard==2.0.3
-PyYAML==6.0
-simple-term-menu==1.4.1

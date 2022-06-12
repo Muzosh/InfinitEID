@@ -1,0 +1,7 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "src/InfinitEID-applet/sdks/jc304_kit/lib/api_classic.jar"
+    ],
+    "python.defaultInterpreterPath": "src/InfinitEID-card-management/venv/bin/python"
+}

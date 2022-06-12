@@ -1,0 +1,3 @@
+[submodule "src/InfinitEID-applet/sdks"]
+	path = src/InfinitEID-applet/sdks
+	url = https://github.com/martinpaljak/oracle_javacard_sdks
