@@ -711,7 +711,6 @@ public class InfinitEIDApplet extends Applet implements ExtendedLength {
 	 * SW_CORRECT_LENGTH.
 	 */
 	private void getResponse(APDU apdu) {
-		byte[] buf = apdu.getBuffer();
 		short le = apdu.setOutgoing();
 
 		if (ram_chaining_cache[RAM_CHAINING_CACHE_OFFSET_BYTES_REMAINING] <= (short) 0) {

@@ -41,7 +41,7 @@ class ConsoleCardConnectionObserver(CardConnectionObserver):
                 )
 
 
-def connect():
+def connect(log_apdu: bool | None = None) -> CardConnection:
     # request any card type and wait for CARD_CONNECTION_TIMEOUT_SECONDS
     print(
         f"[.] Waiting {CONFIG['CARD_CONNECTION_TIMEOUT_SECONDS']}",
@@ -56,7 +56,7 @@ def connect():
     conn = cardservice.connection
 
     # create an instance of our observer and attach to the connection
-    if CONFIG["LOG_APDU"]:
+    if log_apdu is None and CONFIG["LOG_APDU"] or log_apdu:
         conn.addObserver(ConsoleCardConnectionObserver())
 
     # the observer will trace on the console

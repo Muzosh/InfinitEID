@@ -31,3 +31,4 @@ replay_pid*
 
 !gp.jar
 !ant-javacard.jar
+!InfinitEID-applet.cap

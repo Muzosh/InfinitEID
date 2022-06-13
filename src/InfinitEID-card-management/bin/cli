@@ -15,7 +15,8 @@ from infiniteidmanager.util import (
     verify_pin,
 )
 
-conn = connect()
+LOG_APDU = True
+CONNECTION = connect(LOG_APDU)
 
 
 def init_menu():
@@ -39,7 +40,7 @@ def init_menu():
 
 def select_main_applet_menu():
     print("[>] Selecting main applet AID")
-    send(conn, build_apdu(APDU_LIST["select_main_aid"]))
+    send(CONNECTION, build_apdu(APDU_LIST["select_main_aid"]))
 
 
 def get_public_key_menu():
@@ -60,7 +61,7 @@ def get_public_key_menu():
 
     print(f"[>] Get {operation} public key")
     public_key = send(
-        conn, build_apdu(APDU_LIST[f"get_{operation}_public_key"]), False
+        CONNECTION, build_apdu(APDU_LIST[f"get_{operation}_public_key"]), False
     )
     public_key = ECC.import_key(bytes(public_key), curve_name="p384")
     print(public_key.export_key(format="PEM"))
@@ -84,7 +85,9 @@ def get_certificate_menu():
 
     print(f"[>] Get {operation} certificate")
     cert_from_card = send(
-        conn, build_apdu(APDU_LIST[f"get_{operation}_certificate"]), False
+        CONNECTION,
+        build_apdu(APDU_LIST[f"get_{operation}_certificate"]),
+        False,
     )
 
     if not cert_from_card:
@@ -119,7 +122,7 @@ def verify_pin_menu():
     pin = [int(pin_number) for pin_number in pin]
 
     print(f"[>] Verifying {reference} PIN")
-    verify_pin(conn, pin, reference, False)  # type: ignore
+    verify_pin(CONNECTION, pin, reference, False)  # type: ignore
 
 
 def set_pin_menu():
@@ -144,7 +147,7 @@ def set_pin_menu():
     pin = [int(pin_number) for pin_number in pin]
 
     print(f"[>] Setting {reference} PIN")
-    set_pin(conn, pin, reference, False)  # type: ignore
+    set_pin(CONNECTION, pin, reference, False)  # type: ignore
 
 
 def run_command_menu():
@@ -186,7 +189,13 @@ def run_command_menu():
     apdu_builded = build_apdu(apdu_str, data, le)
 
     print("[>] Running selected command")
-    send(conn, apdu_builded, False)
+    send(CONNECTION, apdu_builded, False)
+
+
+def toggle_apdu_logging():
+    global LOG_APDU, CONNECTION
+    LOG_APDU = not LOG_APDU
+    CONNECTION = connect(LOG_APDU)
 
 
 def mainmenu():
@@ -199,6 +208,7 @@ def mainmenu():
         "[s] Set PIN",
         "[v] Verify PIN",
         "[r] Run specific command",
+        f"[t] Toogle APDU logging (current: {LOG_APDU})",
         "[q] Quit",
     ]
     main_menu_cursor = "> "
@@ -218,6 +228,8 @@ def mainmenu():
         status_bar_below_preview=True,
     )
 
+    select_main_applet_menu()
+
     while not main_menu_exit:
         main_selection = main_menu.show()
         clear_screen()
@@ -236,7 +248,10 @@ def mainmenu():
             verify_pin_menu()
         elif main_selection == 6:
             run_command_menu()
-        elif main_selection == 7 or main_selection is None:
+        elif main_selection == 7:
+            toggle_apdu_logging()
+            mainmenu()
+        elif main_selection == 8 or main_selection is None:
             main_menu_exit = True
 
 

@@ -9,13 +9,17 @@ It consists of two sub-projects (having corresponding `README.md` in each sub-pr
 
 Currently the applet works fine with tweaked web-eid-app (install instructions [here](https://github.com/Muzosh/libelectronic-id-with-InfinitEID)).
 
-## General Usage
+## Simplified Usage
 
-1. build and (re)install JavaCard applet (in `src/InfinitEID-applet`):
+See individual nested READMEs for more details.
+
+1. build and (re)install JavaCard applet:
+   * `cd src/InfinitEID-applet`
+   * `git submodule update --init sdks`
    * `ant -f ./build.xml`
    * `java -jar ./gp.jar --uninstall ./InfinitEID-applet.cap`
    * `java -jar ./gp.jar --install ./InfinitEID-applet`
-1. initialize card with Python management console by running `src/InfinitEID-card-management/bin/cli` and selecting initialize option
+2. initialize card with Python management console by running `src/InfinitEID-card-management/bin/cli` and selecting initialize option
 
 ### M1 macbooks
 
