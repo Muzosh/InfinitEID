@@ -22,13 +22,18 @@ This project provides JavaCard applet capable of communicating with [Web-eID](ht
 
 ## File structure description
 
-* `jcdocs` = directory containing source files for used javacard API reference documentation, start with `index.html` file inside
 * `sdks` = submodule from [here](https://github.com/martinpaljak/oracle_javacard_sdks)
 * `src/InfinitEID/InfinitEIDApplet.java` = source code for JavaCard applet
 * `ant-javacard.jar` = ant task for building JavaCard CAP files from [here](https://github.com/martinpaljak/ant-javacard)
 * `build.xml` = build definition for CAP file (used for `ant` command)
 * `gp.jar` = used for loading and managing CAP files on the card from [here](https://github.com/martinpaljak/GlobalPlatformPro)
 * `InfinitEID-applet.cap` = builded CAP file ready to be loaded on JavaCard with GP
+
+## JavaCard documentation
+
+* for development, you can download documentation from [here](https://www.oracle.com/java/technologies/java-archive-downloads-javame-downloads.html)
+* for example, for currently used JavaCard SDK 3.0.4 can be downloaded from [here](https://download.oracle.com/otn-pub/java/java_card_kit/3.0.4/java_card_kit-classic-3_0_4-rr-spec-pfd-b28-06_sep_2011.zip)
+    * open `classic/api_classic/index.html`
 
 ## Usage
 
