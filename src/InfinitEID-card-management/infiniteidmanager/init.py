@@ -8,10 +8,8 @@ from .util import (
 from . import APDU_LIST, CONFIG
 
 
-def init(nextcloud_id: str | None = None, admin_pin_set=False):
+def init(conn, nextcloud_id: str | None = None, admin_pin_set=False):
     print("[+] Card initialization started")
-    conn = connect()
-
     print("[>] Selecting main applet AID")
     send(conn, build_apdu(APDU_LIST["select_main_aid"]))
 

@@ -35,7 +35,11 @@ def init_menu():
 
     admin_pin_set = input("Was admin PIN already set? ({0, 1}, default 0:)")
 
-    init(nextcloud_id or CONFIG["NEXTCLOUD_ID"], bool(admin_pin_set or 0))
+    init(
+        CONNECTION,
+        nextcloud_id or CONFIG["NEXTCLOUD_ID"],
+        bool(admin_pin_set or 0),
+    )
 
 
 def select_main_applet_menu():
