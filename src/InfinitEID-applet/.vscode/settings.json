@@ -1,6 +1,0 @@
-{
-    "java.project.referencedLibraries": [
-        "lib/**/*.jar",
-        "sdks/jc304_kit/lib/api_classic.jar"
-    ]
-}
