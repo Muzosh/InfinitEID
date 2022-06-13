@@ -20,6 +20,17 @@ This project provides JavaCard applet capable of communicating with [Web-eID](ht
     * changing PIN
 * reading and writing binary data (currently used for certificates)
 
+## Usage
+
+1. update sdks submodule
+   * `git submodule update --init sdks`
+2. build JavaCard applet (in `src/InfinitEID-applet`):
+   * `ant -f ./build.xml`
+3. `InfinitEID-applet.cap` file with AID: 0102030405060708 should be generated in the same folder
+4. (re)install applet to a JavaCard
+   * `java -jar ./gp.jar --uninstall ./InfinitEID-applet.cap`
+   * `java -jar ./gp.jar --install ./InfinitEID-applet`
+
 ## File structure description
 
 * `sdks` = submodule from [here](https://github.com/martinpaljak/oracle_javacard_sdks)
@@ -34,17 +45,6 @@ This project provides JavaCard applet capable of communicating with [Web-eID](ht
 * for development, you can download documentation from [here](https://www.oracle.com/java/technologies/java-archive-downloads-javame-downloads.html)
 * for example, for currently used JavaCard SDK 3.0.4 can be downloaded from [here](https://download.oracle.com/otn-pub/java/java_card_kit/3.0.4/java_card_kit-classic-3_0_4-rr-spec-pfd-b28-06_sep_2011.zip)
     * open `classic/api_classic/index.html`
-
-## Usage
-
-1. update sdks submodule
-   * `git submodule update --init sdks`
-2. build JavaCard applet (in `src/InfinitEID-applet`):
-   * `ant -f ./build.xml`
-3. `InfinitEID-applet.cap` file with AID: 0102030405060708 should be generated in the same folder
-4. (re)install applet to a JavaCard
-   * `java -jar ./gp.jar --uninstall ./InfinitEID-applet.cap`
-   * `java -jar ./gp.jar --install ./InfinitEID-applet`
 
 ### M1 macbooks
 
