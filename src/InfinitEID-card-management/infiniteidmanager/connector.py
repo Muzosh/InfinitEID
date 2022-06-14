@@ -108,3 +108,7 @@ def transmit(conn, apdu, throw_exception):
         "[!] Error: %02x %02x, sending APDU: %s"
         % (sw1, sw2, toHexString(apdu))
     )
+
+
+def get_ATR(conn) -> str:
+    return toHexString(conn.getATR())

@@ -1,0 +1,81 @@
+#!python
+
+import os
+import pathlib
+import time
+from hashlib import sha384
+
+from cryptography import x509
+from infiniteidmanager import APDU_LIST, CONFIG
+from infiniteidmanager.connector import connect, get_ATR, send
+from infiniteidmanager.util import (
+    build_apdu,
+    process_read_binary,
+    read_data_length_from_asn1,
+    verify_pin,
+)
+
+ITERATIONS = 100
+CONNECTION = connect(False)
+ORIGIN = "https://example.com"
+
+measurement_directory = (
+    pathlib.Path(__file__).parent.absolute() / "measurements"
+)
+measurement_directory.mkdir(exist_ok=True)
+
+print("[>] Selecting main applet AID")
+send(CONNECTION, build_apdu(APDU_LIST["select_main_aid"]))
+
+send(CONNECTION, build_apdu(APDU_LIST["select_auth_cert"]))
+cert_from_card = process_read_binary(
+    CONNECTION, read_data_length_from_asn1(CONNECTION), 128
+)
+
+x509_cert = x509.load_der_x509_certificate(bytes(cert_from_card))
+
+final_string = ""
+duration_sum = 0
+
+print("[>] Measurement of digital signature started:")
+for i in range(ITERATIONS):
+    print("[>] Iteration:", i + 1)
+    challenge_nonce = os.urandom(32)
+    origin_hash = sha384(ORIGIN.encode("utf-8")).digest()
+    nonce_hash = sha384(challenge_nonce).digest()
+
+    hash_to_be_signed = sha384(origin_hash + nonce_hash).digest()
+
+    verify_pin(CONNECTION, CONFIG["USER_AUTH_PIN"], "auth")
+
+    # measure digital signature generation
+    start_time = time.time()
+    signature = send(
+        CONNECTION,
+        build_apdu(
+            APDU_LIST["internal_authenticate"],
+            data=list(hash_to_be_signed),
+        ),
+    )
+    end_time = time.time()
+    duration = end_time - start_time
+
+    final_string += f"{duration}\n"
+    duration_sum += duration
+
+    # x509_cert.public_key().verify(  # type: ignore
+    #     signature=bytes(signature),
+    #     data=hash_to_be_signed,
+    #     signature_algorithm=(  # type: ignore
+    #         ec.ECDSA(Prehashed(hashes.SHA384()))
+    #     ),
+    # )
+
+final_string = f"Average: {duration_sum / ITERATIONS}\n" + final_string
+
+measurement_file = (
+    measurement_directory
+    / f"{get_ATR(CONNECTION).replace(' ', '')}_{int(time.time())}.txt"
+)
+measurement_file.write_text(final_string)
+print(f"[>] Measurement file saved to: {measurement_file}")
