@@ -74,8 +74,8 @@ for i in range(ITERATIONS):
 final_string = f"Average: {duration_sum / ITERATIONS}\n" + final_string
 
 measurement_file = (
-    measurement_directory
-    / f"{get_ATR(CONNECTION).replace(' ', '')}_{int(time.time())}.txt"
+    measurement_directory / f"{get_ATR(CONNECTION).replace(' ', '')}_"
+    f"{ITERATIONS}_{int(time.time())}.txt"
 )
 measurement_file.write_text(final_string)
 print(f"[>] Measurement file saved to: {measurement_file}")
