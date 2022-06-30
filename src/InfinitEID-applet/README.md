@@ -29,7 +29,7 @@ This project provides JavaCard applet capable of communicating with [Web-eID](ht
 3. `InfinitEID-applet.cap` file with AID: 0102030405060708 should be generated in the same folder
 4. (re)install applet to a JavaCard
    * `java -jar ./gp.jar --uninstall ./InfinitEID-applet.cap`
-   * `java -jar ./gp.jar --install ./InfinitEID-applet`
+   * `java -jar ./gp.jar --install ./InfinitEID-applet.cap`
 
 ## File structure description
 
