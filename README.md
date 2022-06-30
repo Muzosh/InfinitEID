@@ -18,7 +18,7 @@ See individual nested READMEs for more details.
    * `git submodule update --init sdks`
    * `ant -f ./build.xml`
    * `java -jar ./gp.jar --uninstall ./InfinitEID-applet.cap`
-   * `java -jar ./gp.jar --install ./InfinitEID-applet`
+   * `java -jar ./gp.jar --install ./InfinitEID-applet.cap`
 2. initialize card with Python management console by running `src/InfinitEID-card-management/bin/cli` and selecting initialize option
 
 ### M1 macbooks
