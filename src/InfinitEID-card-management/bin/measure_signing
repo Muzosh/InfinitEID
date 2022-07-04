@@ -72,6 +72,7 @@ for i in range(ITERATIONS):
     # )
 
 final_string = f"Average: {duration_sum / ITERATIONS}\n" + final_string
+final_string = final_string.replace(".", ",")
 
 measurement_file = (
     measurement_directory / f"{get_ATR(CONNECTION).replace(' ', '')}_"

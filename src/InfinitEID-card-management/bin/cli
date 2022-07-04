@@ -212,7 +212,7 @@ def mainmenu():
         "[s] Set PIN",
         "[v] Verify PIN",
         "[r] Run specific command",
-        f"[t] Toogle APDU logging (current: {LOG_APDU})",
+        f"[t] Toggle APDU logging (current: {LOG_APDU})",
         "[q] Quit",
     ]
     main_menu_cursor = "> "

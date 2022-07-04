@@ -13,7 +13,7 @@ This project provides JavaCard applet capable of communicating with [Web-eID](ht
     * for authentication
     * for digital signature
 * two certificates for public keys
-* currently EC384 is implemented
+* currently ES384 is implemented
 * auth, sign and admin PIN
     * maximum PIN size
     * maximum retries + block/unblock
