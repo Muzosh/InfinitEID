@@ -203,7 +203,7 @@ def toggle_apdu_logging():
 
 
 def mainmenu():
-    main_menu_title = "#" * 20 + " Card Manager " + "#" * 20
+    main_menu_title = "#" * 20 + " InfinitEID Card Manager " + "#" * 20
     main_menu_items = [
         "[i] Initialize currently connected card",
         "[m] Select main applet",
