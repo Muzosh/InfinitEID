@@ -91,7 +91,7 @@ def get_public_key_menu():
     public_key = send(
         CONNECTION, build_apdu(APDU_LIST[f"get_{operation}_public_key"]), False
     )
-    public_key = ECC.import_key(bytes(public_key), curve_name="p384")
+    public_key = ECC.import_key(bytes(public_key), curve_name="p256")
     print(public_key.export_key(format="PEM"))
 
 

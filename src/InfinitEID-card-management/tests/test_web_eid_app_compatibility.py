@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from hashlib import sha384
+from hashlib import sha256
 from pathlib import Path
 
 import cryptography.hazmat.primitives.asymmetric.ec as ec
@@ -64,7 +64,7 @@ class TestWebEidAppCompatibility:
             public_key = send(
                 conn, build_apdu(APDU_LIST[f"get_{operation}_public_key"])
             )
-            public_key = ECC.import_key(bytes(public_key), curve_name="p384")
+            public_key = ECC.import_key(bytes(public_key), curve_name="p256")
             public_key = public_key.export_key(format="DER")
 
             send(conn, build_apdu(APDU_LIST[f"select_{operation}_cert"]))
@@ -97,11 +97,11 @@ class TestWebEidAppCompatibility:
 
     def test_internal_authenticate(self, conn):
         select_main_applet_menu(conn)
-        origin_hash = sha384(b"https://ria.ee").digest()
-        nonce_hash = sha384(
+        origin_hash = sha256(b"https://ria.ee").digest()
+        nonce_hash = sha256(
             b"12345678901234567890123456789012345678901234"
         ).digest()
-        hash_to_be_signed = sha384(origin_hash + nonce_hash).digest()
+        hash_to_be_signed = sha256(origin_hash + nonce_hash).digest()
 
         verify_pin(conn, CONFIG["USER_AUTH_PIN"], "auth")
 
@@ -124,13 +124,13 @@ class TestWebEidAppCompatibility:
             signature=bytes(signature),
             data=hash_to_be_signed,
             signature_algorithm=(  # type: ignore
-                ec.ECDSA(Prehashed(hashes.SHA384()))
+                ec.ECDSA(Prehashed(hashes.SHA256()))
             ),
         )
 
     def test_create_signature(self, conn):
         select_main_applet_menu(conn)
-        preomputed_hash = sha384(b"fake document").digest()
+        preomputed_hash = sha256(b"fake document").digest()
 
         verify_pin(conn, CONFIG["USER_SIGN_PIN"], "sign")
 
@@ -153,7 +153,7 @@ class TestWebEidAppCompatibility:
             signature=bytes(signature),
             data=preomputed_hash,
             signature_algorithm=(  # type: ignore
-                ec.ECDSA(Prehashed(hashes.SHA384()))
+                ec.ECDSA(Prehashed(hashes.SHA256()))
             ),
         )
 

@@ -27,7 +27,7 @@ SOFTWARE.
 import os
 import pathlib
 import time
-from hashlib import sha384
+from hashlib import sha256
 
 from cryptography import x509
 from infiniteidmanager import APDU_LIST, CONFIG
@@ -65,10 +65,10 @@ print("[>] Measurement of digital signature started:")
 for i in range(ITERATIONS):
     print("[>] Iteration:", i + 1)
     challenge_nonce = os.urandom(32)
-    origin_hash = sha384(ORIGIN.encode("utf-8")).digest()
-    nonce_hash = sha384(challenge_nonce).digest()
+    origin_hash = sha256(ORIGIN.encode("utf-8")).digest()
+    nonce_hash = sha256(challenge_nonce).digest()
 
-    hash_to_be_signed = sha384(origin_hash + nonce_hash).digest()
+    hash_to_be_signed = sha256(origin_hash + nonce_hash).digest()
 
     verify_pin(CONNECTION, CONFIG["USER_AUTH_PIN"], "auth")
 
@@ -91,7 +91,7 @@ for i in range(ITERATIONS):
     #     signature=bytes(signature),
     #     data=hash_to_be_signed,
     #     signature_algorithm=(  # type: ignore
-    #         ec.ECDSA(Prehashed(hashes.SHA384()))
+    #         ec.ECDSA(Prehashed(hashes.SHA256()))
     #     ),
     # )
 
