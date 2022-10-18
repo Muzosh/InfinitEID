@@ -13,7 +13,7 @@ This project provides JavaCard applet capable of communicating with [Web-eID](ht
     * for authentication
     * for digital signature
 * two certificates for public keys
-* currently ES256 is implemented
+* currently ES256 is implemented (for different key and hash lengths, see merged [pull request from dufkan](https://github.com/Muzosh/InfinitEID/pull/1)
 * auth, sign and admin PIN
     * maximum PIN size
     * maximum retries + block/unblock
