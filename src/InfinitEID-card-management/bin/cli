@@ -194,7 +194,7 @@ def run_command_menu():
         )
         != "q"
         and not choice.isnumeric()
-    ) or not 0 <= (int(choice) if choice != "q" else 0) < len(APDU_LIST) - 1:
+    ) or not 0 <= (int(choice) if choice != "q" else 0) < len(APDU_LIST):
         clear_screen()
         print(
             f"Value must be numeric and in range [0, ..., {len(APDU_LIST)-1}]!"
