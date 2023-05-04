@@ -125,23 +125,26 @@ public class InfinitEIDApplet extends Applet implements ExtendedLength {
 
 	public boolean select() {
 		runtime_fields[selected_file] = FileHelper.FID_3F00;
-		if (signPIN != null) {
-			signPIN.reset();
-		}
-		if (authPIN != null) {
-			authPIN.reset();
-		}
-		if (adminPIN != null) {
-			adminPIN.reset();
-		}
+		
+// 		WARNING: This might enable brute force
+// 		if (signPIN != null) {
+// 			signPIN.reset();
+// 		}
+// 		if (authPIN != null) {
+// 			authPIN.reset();
+// 		}
+// 		if (adminPIN != null) {
+// 			adminPIN.reset();
+// 		}
 		return true;
 	}
 
 	public void deselect() {
 		runtime_fields[selected_file] = FileHelper.FID_3F00;
-		signPIN.reset();
-		authPIN.reset();
-		adminPIN.reset();
+// 		WARNING: This might enable brute force
+// 		signPIN.reset();
+// 		authPIN.reset();
+// 		adminPIN.reset();
 	}
 
 	public void process(APDU apdu) throws ISOException {
