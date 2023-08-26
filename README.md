@@ -7,7 +7,7 @@ It consists of two sub-projects (having corresponding `README.md` in each sub-pr
 1) JavaCard applet source code and build files
 2) Python management console (card initialization and sending APDU commands)
 
-Currently the applet works fine with tweaked web-eid-app (install instructions [here](https://github.com/Muzosh/libelectronic-id-with-InfinitEID)).
+Currently the applet works fine with tweaked web-eid-app (install instructions [here]([https://github.com/Muzosh/libelectronic-id-with-InfinitEID](https://github.com/Muzosh/libelectronic-id/tree/feature-InfinitEID))).
 
 ## Simplified Usage
 
