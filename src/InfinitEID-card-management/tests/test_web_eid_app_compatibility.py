@@ -245,3 +245,11 @@ class TestWebEidAppCompatibility:
                 CONFIG[f"USER_{operation.upper()}_PIN"],
                 operation,  # type: ignore
             )
+
+if __name__ == "__main__":
+    conn = connect()
+    test = TestWebEidAppCompatibility()
+    test.test_certificates(conn)
+    test.test_internal_authenticate(conn)
+    test.test_create_signature(conn)
+    test.test_auth_pin_manipulation(conn)

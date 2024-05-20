@@ -132,7 +132,7 @@ setup(
     # https://packaging.python.org/discussions/install-requires-vs-requirements/
     install_requires=[
         "pycryptodomex==3.14.1",
-        "pyscard==2.0.3",
+        # "pyscard==2.0.3",
         "simple-term-menu==1.4.1",
     ],  # Optional
     # List additional groups of dependencies here (e.g. development
