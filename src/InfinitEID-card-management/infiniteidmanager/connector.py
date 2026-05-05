@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from time import sleep
 from smartcard.CardConnectionObserver import CardConnectionObserver
 from smartcard.CardConnection import CardConnection
 from smartcard.CardRequest import CardRequest
@@ -83,6 +84,12 @@ def connect(log_apdu: bool | None = None) -> CardConnection:
     if log_apdu is None and CONFIG["LOG_APDU"] or log_apdu:
         conn.addObserver(ConsoleCardConnectionObserver())
 
+    conn.connect()
+
+    # CRITICAL: keep these alive alongside the connection
+    conn._cardservice = cardservice
+    conn._cardrequest = cardrequest
+
     # the observer will trace on the console
     return conn
 
@@ -106,11 +113,6 @@ def send(conn, apdu, throw_exception=True) -> list:
 
 
 def transmit(conn, apdu, throw_exception):
-    try:
-        conn.connect(CardConnection.T0_protocol)
-    except:
-        conn.connect(CardConnection.T1_protocol)
-
     data, sw1, sw2 = conn.transmit(apdu)
 
     if [sw1, sw2] == [0x90, 0x00]:
